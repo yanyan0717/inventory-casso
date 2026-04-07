@@ -1,7 +1,7 @@
 import LandingPage from './auth/LandingPage'
 import './App.css'
 
-function App() {
+function Appss() {
   return (
     <LandingPage />
   )
