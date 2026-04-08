@@ -53,7 +53,7 @@ export default function AddMaterial() {
       
       {/* Huge Plus Icon Button as requested */}
       <div className="text-center flex flex-col items-center">
-        <h2 className="text-3xl font-black text-gray-800 font-[var(--heading)] tracking-tight mb-2">New Entry</h2>
+        <h2 className="text-3xl text-gray-800 font-[var(--heading)] tracking-tight mb-2">New Entry</h2>
         <p className="text-gray-500 mb-10 max-w-sm">Click the button below to register a brand new item into the inventory system.</p>
         
         <button 

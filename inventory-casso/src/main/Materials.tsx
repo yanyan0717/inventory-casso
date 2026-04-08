@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, Edit2, Trash2, Eye, X, Save } from 'lucide-react';
+import { Search, Edit2, Trash2, Eye, X, Save } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { showToast } from '../components/Toast';
 
@@ -122,7 +122,7 @@ export default function Materials() {
 
   const getStatus = (stock: number) => {
     if (stock === 0) return { label: 'Out of Stock', class: 'bg-red-100 text-red-700' };
-    if (stock < 10) return { label: 'Low Stock', class: 'bg-orange-100 text-orange-700' };
+    if (stock < 6) return { label: 'Low Stock', class: 'bg-orange-100 text-orange-700' };
     return { label: 'In Stock', class: 'bg-green-100 text-green-700' };
   };
 
@@ -132,37 +132,37 @@ export default function Materials() {
   );
 
   return (
-    <div className="h-full flex flex-col space-y-6 relative">
-      <div className="flex justify-between items-end gap-4">
+    <div className="flex flex-col space-y-4 relative w-full max-w-6xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black text-gray-800 font-[var(--heading)] tracking-tight">Materials Inventory</h2>
-          <p className="text-sm text-gray-500 font-[var(--sans)] mt-1">Manage and track your supplies efficiently.</p>
+          <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Materials</h2>
+          <p className="text-sm text-gray-600 mt-1 font-medium">Manage and track your supplies efficiently.</p>
         </div>
-      </div>
-
-      <div className="flex-1 bg-white rounded-2xl shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100/60 flex flex-col overflow-hidden">
-        {/* Table Toolbar */}
-        <div className="p-5 border-b border-gray-50 flex flex-col sm:flex-row justify-between gap-4 bg-gray-50/30">
-          <div className="relative w-full sm:w-[400px] shadow-sm rounded-xl overflow-hidden bg-white">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-3.5 w-3.5 text-gray-400" />
             </div>
             <input
               type="text"
-              placeholder="Search by name or category..."
+              placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-2.5 border border-gray-200 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none"
+              className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none"
             />
           </div>
-          <button className="flex items-center gap-2 text-sm font-semibold text-gray-600 bg-white shadow-sm border border-gray-200 px-5 py-2.5 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-95">
-            <Filter className="w-4 h-4" />
-            Filter
+          <button 
+            onClick={() => openModal('add')}
+            className="flex items-center gap-2 text-sm font-semibold text-white bg-[#166534] px-5 py-1.5 rounded-md hover:bg-[#14532d] transition-all active:scale-95 shadow-sm"
+          >
+            Add Item
           </button>
         </div>
+      </div>
 
+      <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
         {/* Table */}
-        <div className="overflow-x-auto flex-1 pb-20"> {/* pb-20 to avoid floating button overlap */}
+        <div className="overflow-x-auto">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-gray-400 font-medium">Loading materials...</div>
@@ -176,32 +176,32 @@ export default function Materials() {
               <p className="text-sm mt-1">Try a different search term or add a new one.</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Item ID</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Stock</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Actions</th>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Item ID</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider text-right">Stock</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-50">
                 {filteredMaterials.map((mat) => {
                   const status = getStatus(mat.stocks);
                   return (
-                    <tr key={mat.id} className="hover:bg-gray-50/80 transition-colors group">
-                      <td className="px-6 py-4 font-mono text-[11px] font-semibold text-gray-400 tracking-wider">
+                    <tr key={mat.id} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
+                      <td className="px-6 py-4 font-mono text-xs text-gray-400 font-bold">
                         {mat.material_id || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 font-bold text-gray-800">{mat.name}</td>
-                      <td className="px-6 py-4 text-gray-600 capitalize font-medium">{mat.category}</td>
+                      <td className="px-6 py-4 font-bold text-gray-800 text-sm">{mat.name}</td>
+                      <td className="px-6 py-4 text-gray-600 capitalize text-sm font-semibold">{mat.category}</td>
                       <td className="px-6 py-4 text-right">
-                        <span className="font-bold text-gray-700 text-base">{mat.stocks}</span>
+                        <span className="font-bold text-gray-700 text-sm">{mat.stocks}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide uppercase inline-flex items-center ${status.class}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${status.class}`}>
                           {status.label}
                         </span>
                       </td>
@@ -210,21 +210,21 @@ export default function Materials() {
                           <button 
                             onClick={() => openModal('view', mat)}
                             title="View"
-                            className="p-1.5 text-indigo-500 bg-indigo-50 hover:bg-indigo-100 rounded-md transition-shadow active:scale-95 shadow-sm"
+                            className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button 
                             onClick={() => openModal('edit', mat)}
                             title="Edit"
-                            className="p-1.5 text-amber-500 bg-amber-50 hover:bg-amber-100 rounded-md transition-shadow active:scale-95 shadow-sm"
+                            className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-md transition-colors"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button 
                             onClick={() => handleDelete(mat.id)}
                             title="Delete"
-                            className="p-1.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-md transition-shadow active:scale-95 shadow-sm"
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -241,20 +241,20 @@ export default function Materials() {
 
 
 
-      {/* Modern Small Modal */}
+    {/* Modern Small Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in-up">
-          <div className="bg-white w-full max-w-sm rounded-lg shadow-2xl overflow-hidden relative transform scale-100 transition-transform border border-gray-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white w-full max-w-sm rounded-md shadow-xl overflow-hidden relative border border-gray-200">
             
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <h3 className="font-bold text-gray-800 text-lg">
+            <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h3 className="font-bold text-gray-800 text-base">
                 {modalMode === 'add' ? 'Add Material' : modalMode === 'edit' ? 'Edit Material' : 'View Material'}
               </h3>
               <button 
                 onClick={closeModal}
-                className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-7 h-7 bg-white border border-gray-200 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -268,7 +268,7 @@ export default function Materials() {
                     value={formData.material_id}
                     onChange={(e) => setFormData({...formData, material_id: e.target.value})}
                     disabled={modalMode === 'view'}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
                     placeholder="e.g. MAT-001"
                     required
                   />
@@ -281,7 +281,7 @@ export default function Materials() {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     disabled={modalMode === 'view'}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
                     placeholder="e.g. Printer Paper"
                     required
                   />
@@ -294,7 +294,7 @@ export default function Materials() {
                       value={formData.category}
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
                       disabled={modalMode === 'view'}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
+                      className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
                       required
                     >
                       <option value="">Select...</option>
@@ -312,7 +312,7 @@ export default function Materials() {
                       value={formData.stocks}
                       onChange={(e) => setFormData({...formData, stocks: e.target.value})}
                       disabled={modalMode === 'view'}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-bold"
+                      className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-bold"
                       placeholder="0"
                       min="0"
                     />
@@ -326,7 +326,7 @@ export default function Materials() {
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     disabled={modalMode === 'view'}
                     rows={2}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none resize-none disabled:opacity-70 disabled:bg-gray-100"
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none resize-none disabled:opacity-70 disabled:bg-gray-100"
                     placeholder="Brief details..."
                   ></textarea>
                 </div>
@@ -334,29 +334,28 @@ export default function Materials() {
 
               <div className="mt-8">
                 {modalMode !== 'view' ? (
-                  <button 
-                    type="submit" 
-                    disabled={saving}
-                    className="w-full bg-[#166534] hover:bg-[#14532d] text-white py-3 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
-                  >
-                    <Save className="w-5 h-5" />
-                    {saving ? 'Saving...' : 'Save Material'}
-                  </button>
-                ) : (
-                  <button 
-                    type="button" 
-                    onClick={closeModal}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg text-sm font-bold transition-all active:scale-[0.98]"
-                  >
-                    Close View
-                  </button>
-                )}
-              </div>
-            </form>
-
+                    <button 
+                      type="submit" 
+                      disabled={saving}
+                      className="w-full bg-[#166534] hover:bg-[#14532d] text-white py-3 rounded-md text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                    >
+                      <Save className="w-5 h-5" />
+                      {saving ? 'Saving...' : 'Save Material'}
+                    </button>
+                  ) : (
+                    <button 
+                      type="button" 
+                      onClick={closeModal}
+                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-md text-sm font-bold transition-all"
+                    >
+                      Close View
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
+        )}
+      </div>
+    );
+  }
