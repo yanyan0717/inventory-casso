@@ -1,11 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import Login from './Login';
 import Register from './Register';
 import logoUrl from '../assets/casso.png';
 import bgImage from '../assets/casso1.jpg';
 
 export default function LandingPage() {
+    const navigate = useNavigate();
     const [mode, setMode] = useState<'login' | 'register'>('login');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                navigate('/dashboard', { replace: true });
+                return;
+            }
+
+            setLoading(false);
+        };
+
+        checkAuth();
+    }, [navigate]);
+
+    if (loading) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-white">
+                <div className="text-gray-500">Loading...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative h-screen w-full overflow-hidden bg-white">

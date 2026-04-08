@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 interface LoginProps {
@@ -6,6 +7,7 @@ interface LoginProps {
 }
 
 export default function Login({ onModeChange }: LoginProps) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,7 +18,7 @@ export default function Login({ onModeChange }: LoginProps) {
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -25,8 +27,8 @@ export default function Login({ onModeChange }: LoginProps) {
 
     if (error) {
       setError(error.message);
-    } else {
-      window.location.href = '/dashboard';
+    } else if (data?.session) {
+      navigate('/dashboard', { replace: true });
     }
   };
 

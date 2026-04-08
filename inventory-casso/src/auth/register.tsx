@@ -27,6 +27,9 @@ export default function Register({ onModeChange }: RegisterProps) {
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
     });
 
     setLoading(false);
