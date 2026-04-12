@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Package, TrendingUp, AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface Material {
@@ -15,6 +15,8 @@ interface Material {
 export default function Dashboard() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStat, setSelectedStat] = useState<string | null>(null);
 
   const fetchMaterials = async () => {
     const { data } = await supabase
@@ -80,11 +82,25 @@ export default function Dashboard() {
   };
 
   const stats = [
-    { title: 'Total Materials', value: totalMaterials.toLocaleString(), icon: Package, color: 'text-blue-800', bg: 'bg-blue-100' },
-    { title: 'Total Stock', value: totalStock.toLocaleString(), icon: TrendingUp, color: 'text-green-800', bg: 'bg-green-100' },
-    { title: 'Low Stock', value: lowStock, icon: AlertTriangle, color: 'text-orange-800', bg: 'bg-orange-100' },
-    { title: 'Out of Stock', value: outOfStock, icon: CheckCircle2, color: 'text-red-800', bg: 'bg-red-100' },
+    { title: 'Total Materials', value: totalMaterials.toLocaleString(), icon: Package, color: 'text-blue-800', bg: 'bg-blue-100', type: 'all' },
+    { title: 'Total Stock', value: totalStock.toLocaleString(), icon: TrendingUp, color: 'text-green-800', bg: 'bg-green-100', type: 'all' },
+    { title: 'Low Stock', value: lowStock, icon: AlertTriangle, color: 'text-orange-800', bg: 'bg-orange-100', type: 'low' },
+    { title: 'Out of Stock', value: outOfStock, icon: CheckCircle2, color: 'text-red-800', bg: 'bg-red-100', type: 'out' },
   ];
+
+  const getFilteredMaterials = () => {
+    if (!selectedStat) return [];
+    const statType = stats.find(s => s.title === selectedStat)?.type;
+    if (statType === 'all') return materials;
+    if (statType === 'low') return materials.filter(m => m.stocks > 0 && m.stocks < 6);
+    if (statType === 'out') return materials.filter(m => m.stocks === 0);
+    return [];
+  };
+
+  const handleStatClick = (title: string) => {
+    setSelectedStat(title);
+    setIsModalOpen(true);
+  };
 
   const categoryColors: Record<string, string> = {
     furniture: 'bg-[#166534]',
@@ -106,7 +122,8 @@ export default function Dashboard() {
           return (
             <div 
               key={idx} 
-              className={`${stat.bg} rounded-md p-5 shadow-sm border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow`}
+              onClick={() => handleStatClick(stat.title)}
+              className={`${stat.bg} rounded-md p-5 shadow-sm border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow cursor-pointer`}
             >
               <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${stat.bg}`}>
                 <Icon className={`w-5 h-5 ${stat.color}`} />
@@ -341,6 +358,54 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Stats Detail Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white w-full max-w-2xl rounded-md shadow-xl overflow-hidden relative border border-gray-200 max-h-[80vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+              <h3 className="font-bold text-gray-800 text-base">{selectedStat} Details</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="overflow-auto flex-1">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 bg-[#f8fafc]">
+                  <tr className="border-b border-gray-200">
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item ID</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right">Stock</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm divide-y divide-gray-50">
+                  {getFilteredMaterials().map((mat) => {
+                    const status = getStatus(mat.stocks);
+                    return (
+                      <tr key={mat.id} className="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                        <td className="px-6 py-2 font-mono text-[10px] text-slate-800 font-bold">{mat.material_id}</td>
+                        <td className="px-6 py-2 text-slate-800 text-sm">{mat.name}</td>
+                        <td className="px-6 py-2 text-slate-800 text-sm capitalize">{mat.category}</td>
+                        <td className="px-6 py-2 text-right text-slate-800 text-sm">{mat.stocks}</td>
+                        <td className="px-6 py-2">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${status.class}`}>
+                            {status.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
