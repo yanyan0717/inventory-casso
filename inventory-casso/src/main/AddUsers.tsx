@@ -1,14 +1,27 @@
 import { useEffect, useState } from 'react';
-import { UserPlus, X, Save } from 'lucide-react';
+import { UserPlus, X, Save, Pencil, Trash2, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { showToast } from '../components/Toast';
 
+interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: string | null;
+  created_at: string;
+}
+
 export default function AddUser() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -46,6 +59,111 @@ export default function AddUser() {
 
     checkAccess();
   }, [navigate]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    console.log('Fetching users...');
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    console.log('Profiles data:', data, 'error:', error, 'message:', error?.message);
+    
+    if (!error && data) {
+      setUsers(data);
+    } else {
+      console.log('Fetch failed, trying alternative...');
+      setUsers([]);
+    }
+    setLoading(false);
+  };
+
+  const handleEdit = (user: UserProfile) => {
+    setSelectedUser(user);
+    setFormData({
+      email: user.email || '',
+      fullName: user.full_name || '',
+      password: '',
+      confirmPassword: '',
+      role: user.role || 'user',
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      showToast('Failed to delete user', 'error');
+    } else {
+      showToast('User deleted successfully', 'success');
+      fetchUsers();
+    }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.fullName) {
+      showToast('Please fill in required fields', 'error');
+      return;
+    }
+
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      showToast('Passwords do not match', 'error');
+      return;
+    }
+
+    setSaving(true);
+
+    const updates: { full_name: string; role: string } = {
+      full_name: formData.fullName,
+      role: formData.role,
+    };
+
+    if (formData.password) {
+      if (formData.password.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        setSaving(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.admin.updateUserById(selectedUser!.id, {
+        password: formData.password,
+      });
+
+      if (updateError) {
+        showToast('Failed to update password', 'error');
+        setSaving(false);
+        return;
+      }
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', selectedUser!.id);
+
+    setSaving(false);
+
+    if (error) {
+      showToast('Failed to update user', 'error');
+    } else {
+      showToast('User updated successfully', 'success');
+      setIsEditModalOpen(false);
+      fetchUsers();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,14 +219,40 @@ export default function AddUser() {
     
     setSaving(false);
 
+    setSaving(false);
+
     if (error) {
       showToast(error.message, 'error');
     } else {
       showToast('User added successfully!', 'success');
       setIsModalOpen(false);
-      navigate('/dashboard');
+      setFormData({
+        email: '',
+        fullName: '',
+        password: '',
+        confirmPassword: '',
+        role: 'user',
+      });
+      fetchUsers();
     }
   };
+
+  const resetForm = () => {
+    setFormData({
+      email: '',
+      fullName: '',
+      password: '',
+      confirmPassword: '',
+      role: 'user',
+    });
+    setSelectedUser(null);
+  };
+
+  const filteredUsers = users.filter(user => 
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.role?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (checkingAccess) {
     return (
@@ -125,13 +269,80 @@ export default function AddUser() {
         <p className="text-sm text-gray-500">Create a new user account for the system.</p>
       </div>
       
-      <button 
-        onClick={() => setIsModalOpen(true)}
-        className="self-start flex items-center gap-3 px-4 py-3 bg-[#166534] hover:bg-[#14532d] text-white rounded-lg shadow-md hover:shadow-lg transition-all"
-      >
-        <UserPlus className="w-5 h-5" />
-        <span className="font-medium">Add New User</span>
-      </button>
+      <div className="flex items-center gap-4 mb-6">
+        <button 
+          onClick={() => { resetForm(); setIsModalOpen(true); }}
+          className="flex items-center gap-2 px-4 py-3 bg-[#166534] hover:bg-[#14532d] text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+        >
+          <UserPlus className="w-5 h-5" />
+          <span className="font-medium">Add New User</span>
+        </button>
+
+        <div className="flex-1 max-w-md relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex-1">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Full Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">No users found</td>
+                </tr>
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.full_name || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{user.email || '-'}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
+                        {user.role || 'user'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleEdit(user)}
+                          className="p-2 text-gray-400 hover:text-[#166534] hover:bg-green-50 rounded-lg transition-colors"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in-up">
@@ -219,6 +430,85 @@ export default function AddUser() {
                 >
                   <Save className="w-5 h-5" />
                   {saving ? 'Adding...' : 'Add User'}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in-up">
+          <div className="bg-white w-full max-w-sm rounded-lg shadow-2xl overflow-hidden relative transform scale-100 transition-transform border border-gray-200">
+            
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h3 className="font-bold text-gray-800 text-lg">Edit User</h3>
+              <button 
+                onClick={() => setIsEditModalOpen(false)}
+                className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdate} className="p-6">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Full Name</label>
+                  <input 
+                    type="text" 
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                    placeholder="Enter full name"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Role</label>
+                  <select 
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">New Password (leave blank to keep current)</label>
+                  <input 
+                    type="password" 
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                    placeholder="Enter new password"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Confirm Password</label>
+                  <input 
+                    type="password" 
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none resize-none"
+                    placeholder="Re-enter password"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <button 
+                  type="submit" 
+                  disabled={saving}
+                  className="w-full bg-[#166534] hover:bg-[#14532d] text-white py-3 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  <Save className="w-5 h-5" />
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
