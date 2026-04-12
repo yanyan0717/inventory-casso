@@ -11,6 +11,7 @@ interface Material {
   stocks: number;
   description: string;
   picture: string | null;
+  added_by: string | null;
 }
 
 export default function Materials() {
@@ -23,6 +24,10 @@ export default function Materials() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit' | 'view'>('add');
   const [saving, setSaving] = useState(false);
+
+  // Delete Confirmation State
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     id: '',
@@ -53,10 +58,26 @@ export default function Materials() {
     fetchMaterials();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this material?')) return;
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen]);
 
-    const { error } = await supabase.from('materials').delete().eq('id', id);
+  const handleDelete = async (id: string) => {
+    setItemToDelete(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    const { error } = await supabase.from('materials').delete().eq('id', itemToDelete);
 
     if (error) {
       showToast('Failed to delete material', 'error');
@@ -64,6 +85,9 @@ export default function Materials() {
       showToast('Material deleted successfully', 'success');
       fetchMaterials();
     }
+
+    setShowDeleteConfirm(false);
+    setItemToDelete(null);
   };
 
   const openModal = (mode: 'add' | 'edit' | 'view', material?: Material) => {
@@ -154,7 +178,8 @@ export default function Materials() {
 
   const filteredMaterials = materials.filter((mat) =>
     mat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mat.category.toLowerCase().includes(searchTerm.toLowerCase())
+    mat.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (mat.material_id && mat.material_id.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const sortedMaterials = [...filteredMaterials].sort((a, b) => {
@@ -221,6 +246,7 @@ export default function Materials() {
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Picture</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Name</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Added By</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right cursor-pointer select-none group" onClick={() => handleSort('stocks')}>
                     <span className="flex items-center justify-end gap-1">
                       Stock 
@@ -263,6 +289,7 @@ export default function Materials() {
                       </td>
                       <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.name}</td>
                       <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.category}</td>
+                      <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.added_by || '-'}</td>
                       <td className="px-6 py-1.5 text-right">
                         <span className={`text-sm tracking-tight ${status.text}`}>{mat.stocks}</span>
                       </td>
@@ -451,13 +478,45 @@ export default function Materials() {
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-md text-sm font-bold transition-all"
+                    className="w-full bg-[#166534] hover:bg-[#14532d] text-white py-3 rounded-md text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
                   >
                     Close View
                   </button>
                 )}
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white w-full max-w-xs rounded-lg shadow-xl overflow-hidden relative border border-gray-200">
+            <div className="p-6 text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="font-bold text-gray-800 text-lg mb-2">Delete Material</h3>
+              <p className="text-gray-500 text-sm">Are you sure you want to delete this material? This action cannot be undone.</p>
+            </div>
+            <div className="flex border-t border-gray-100">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setItemToDelete(null);
+                }}
+                className="flex-1 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors border-l border-gray-100"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
