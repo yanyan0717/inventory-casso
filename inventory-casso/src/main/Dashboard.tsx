@@ -320,42 +320,44 @@ export default function Dashboard() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h3 className="text-base font-bold text-gray-800 font-[var(--heading)]">Recent Activity</h3>
         </div>
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="text-center text-gray-400 py-8">Loading...</div>
-          ) : recentMaterials.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">No recent activity</div>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#f8fafc] border-b border-gray-200">
-                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item ID</th>
-                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item Name</th>
-                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Date</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm divide-y divide-gray-50">
-                {recentMaterials.map((mat) => {
-                  const status = getStatus(mat.stocks);
-                  return (
-                    <tr key={mat.id} className="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
-                      <td className="px-6 py-1.5 font-mono text-[10px] text-slate-800 font-bold tracking-tight">{mat.material_id}</td>
-                      <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.name}</td>
-                      <td className="px-6 py-1.5 text-slate-800 text-sm capitalize">{mat.category}</td>
-                      <td className="px-6 py-1.5">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${status.class}`}>
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-1.5 text-slate-500 text-xs">{formatDate(mat.created_at)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+        <div className="p-4">
+          <div className="overflow-x-auto">
+            {loading ? (
+              <div className="text-center text-gray-400 py-8">Loading...</div>
+            ) : recentMaterials.length === 0 ? (
+              <div className="text-center text-gray-400 py-8">No recent activity</div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#f8fafc] border-b border-gray-200">
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item ID</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item Name</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm divide-y divide-gray-50">
+                  {recentMaterials.map((mat) => {
+                    const status = getStatus(mat.stocks);
+                    return (
+                      <tr key={mat.id} className="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+                        <td className="px-6 py-1.5 font-mono text-[10px] text-slate-800 font-bold tracking-tight">{mat.material_id}</td>
+                        <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.name}</td>
+                        <td className="px-6 py-1.5 text-slate-800 text-sm capitalize">{mat.category}</td>
+                        <td className="px-6 py-1.5">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${status.class}`}>
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-1.5 text-slate-500 text-xs">{formatDate(mat.created_at)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
 
