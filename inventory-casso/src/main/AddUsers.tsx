@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { UserPlus, X, Save, Pencil, Trash2, Search } from 'lucide-react';
+import { UserPlus, X, Save, Pencil, Trash2, Search, Settings2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { showToast } from '../components/Toast';
@@ -63,6 +63,17 @@ export default function AddUser() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (isModalOpen || isEditModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen, isEditModalOpen]);
 
   const fetchUsers = async () => {
     console.log('Fetching users...');
@@ -263,42 +274,44 @@ export default function AddUser() {
   }
 
   return (
-    <div className="h-full flex flex-col p-8">
-      <div className="flex flex-col space-y-2 mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)]">Add User</h2>
-        <p className="text-sm text-gray-500">Create a new user account for the system.</p>
-      </div>
-      
-      <div className="flex items-center gap-4 mb-6">
-        <button 
-          onClick={() => { resetForm(); setIsModalOpen(true); }}
-          className="flex items-center gap-2 px-4 py-3 bg-[#166534] hover:bg-[#14532d] text-white rounded-lg shadow-md hover:shadow-lg transition-all"
-        >
-          <UserPlus className="w-5 h-5" />
-          <span className="font-medium">Add New User</span>
-        </button>
-
-        <div className="flex-1 max-w-md relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none"
-          />
+    <div className="flex flex-col space-y-4 relative w-full max-w-6xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Add User</h2>
+          <p className="text-sm text-gray-600 mt-1 font-medium">Create a new user account for the system.</p>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-3.5 w-3.5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none"
+            />
+          </div>
+          <button 
+            onClick={() => { resetForm(); setIsModalOpen(true); }}
+            className="flex items-center gap-2 text-sm font-semibold text-white bg-[#166534] px-5 py-1.5 rounded-md hover:bg-[#14532d] transition-all active:scale-95 shadow-sm"
+          >
+            <UserPlus className="w-4 h-4" />
+            Add User
+          </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex-1">
+      <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#f8fafc] border-b border-gray-200">
                 <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Full Name</th>
                 <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right">Actions</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -311,28 +324,28 @@ export default function AddUser() {
                   <td colSpan={4} className="px-6 py-8 text-center text-gray-500">No users found</td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-[#f0fdf4]/30 transition-colors border-b border-gray-50 last:border-0">
-                    <td className="px-6 py-2.5 text-sm font-medium text-gray-800">{user.full_name || '-'}</td>
-                    <td className="px-6 py-2.5 text-sm text-gray-500">{user.email || '-'}</td>
-                    <td className="px-6 py-2.5">
+                filteredUsers.map((user, index) => (
+                  <tr key={user.id} className={`hover:bg-slate-50 transition-colors group border-b border-slate-100 last:border-0 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                    <td className="px-6 py-1.5 text-sm text-slate-800">{user.full_name || '-'}</td>
+                    <td className="px-6 py-1.5 text-sm text-slate-600">{user.email || '-'}</td>
+                    <td className="px-6 py-1.5">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
                         {user.role || 'user'}
                       </span>
                     </td>
-                    <td className="px-6 py-2.5 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="px-6 py-1.5">
+                      <div className="flex items-center justify-center gap-0.5">
                         <button
                           onClick={() => handleEdit(user)}
-                          className="p-1.5 text-gray-400 hover:text-[#166534] hover:bg-green-50 rounded-lg transition-colors"
+                          className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-lg transition-all cursor-pointer"
                         >
-                          <Pencil className="w-3.5 h-3.5" />
+                          <Settings2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(user.id)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>

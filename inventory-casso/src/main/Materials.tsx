@@ -19,6 +19,8 @@ export default function Materials() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -193,6 +195,16 @@ export default function Materials() {
     return 0;
   });
 
+  const totalPages = Math.ceil(sortedMaterials.length / itemsPerPage);
+  const paginatedMaterials = sortedMaterials.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   return (
     <div className="flex flex-col space-y-4 relative w-full max-w-6xl">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -271,10 +283,10 @@ export default function Materials() {
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-50">
-                {sortedMaterials.map((mat) => {
+                {paginatedMaterials.map((mat, index) => {
                   const status = getStatus(mat.stocks);
                   return (
-                    <tr key={mat.id} className="hover:bg-slate-50 transition-colors group border-b border-slate-100 last:border-0">
+                    <tr key={mat.id} className={`hover:bg-slate-50 transition-colors group border-b border-slate-100 last:border-0 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                       <td className="px-6 py-1.5 font-mono text-[10px] text-slate-800 font-bold tracking-tight">
                         {mat.material_id || 'N/A'}
                       </td>
@@ -304,21 +316,21 @@ export default function Materials() {
                           <button
                             onClick={() => openModal('view', mat)}
                             title="View Details"
-                            className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all"
+                            className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all cursor-pointer"
                           >
                             <BookOpen className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => openModal('edit', mat)}
                             title="Edit Item"
-                            className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-lg transition-all"
+                            className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-lg transition-all cursor-pointer"
                           >
                             <Settings2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(mat.id)}
                             title="Delete Item"
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
                           >
                             <Trash className="w-4 h-4" />
                           </button>
@@ -331,6 +343,44 @@ export default function Materials() {
             </table>
           )}
         </div>
+        
+        {/* Pagination */}
+        {sortedMaterials.length > 0 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
+            <div className="text-sm text-gray-500">
+              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, sortedMaterials.length)} of {sortedMaterials.length} entries
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                    currentPage === page
+                      ? 'bg-[#166534] text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
 
@@ -480,6 +530,7 @@ export default function Materials() {
                     onClick={closeModal}
                     className="w-full bg-[#166534] hover:bg-[#14532d] text-white py-3 rounded-md text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
                   >
+                    <X className="w-4 h-4" />
                     Close View
                   </button>
                 )}
