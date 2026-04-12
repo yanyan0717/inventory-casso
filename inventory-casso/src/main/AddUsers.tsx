@@ -274,7 +274,7 @@ export default function AddUser() {
   }
 
   return (
-    <div className="flex flex-col space-y-4 relative w-full max-w-6xl">
+    <div className="flex flex-col space-y-4 relative w-full max-w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Add User</h2>

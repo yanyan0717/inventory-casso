@@ -49,8 +49,8 @@ export default function Layout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-8">
-          <div className="max-w-6xl mx-auto h-full">
+        <main className="flex-1 p-8 overflow-x-hidden">
+          <div className="w-full max-w-[1400px] mx-auto h-full">
             <Outlet />
           </div>
         </main>
