@@ -294,11 +294,11 @@ export default function AddUser() {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Full Name</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+              <tr className="bg-[#f8fafc] border-b border-gray-200">
+                <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Full Name</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -312,27 +312,27 @@ export default function AddUser() {
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.full_name || '-'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{user.email || '-'}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
+                  <tr key={user.id} className="hover:bg-[#f0fdf4]/30 transition-colors border-b border-gray-50 last:border-0">
+                    <td className="px-6 py-2.5 text-sm font-medium text-gray-800">{user.full_name || '-'}</td>
+                    <td className="px-6 py-2.5 text-sm text-gray-500">{user.email || '-'}</td>
+                    <td className="px-6 py-2.5">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
                         {user.role || 'user'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-6 py-2.5 text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleEdit(user)}
-                          className="p-2 text-gray-400 hover:text-[#166534] hover:bg-green-50 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-400 hover:text-[#166534] hover:bg-green-50 rounded-lg transition-colors"
                         >
-                          <Pencil className="w-4 h-4" />
+                          <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(user.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -348,11 +348,13 @@ export default function AddUser() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in-up">
           <div className="bg-white w-full max-w-sm rounded-lg shadow-2xl overflow-hidden relative transform scale-100 transition-transform border border-gray-200">
             
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <h3 className="font-bold text-gray-800 text-lg">Add User</h3>
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+              <h3 className="font-bold text-gray-800 text-base">
+                Add User
+              </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -367,7 +369,7 @@ export default function AddUser() {
                       type="text" 
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none font-medium placeholder:text-gray-300 placeholder:font-normal"
                       placeholder="Enter full name"
                       required
                     />
@@ -379,7 +381,7 @@ export default function AddUser() {
                       type="email" 
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none font-medium placeholder:text-gray-300 placeholder:font-normal"
                       placeholder="e.g. user@domain.com"
                       required
                     />
@@ -390,7 +392,7 @@ export default function AddUser() {
                     <select 
                       value={formData.role}
                       onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none font-medium"
                     >
                       <option value="user">User</option>
                       <option value="admin">Admin</option>
@@ -403,7 +405,7 @@ export default function AddUser() {
                       type="password" 
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none font-medium placeholder:text-gray-300 placeholder:font-normal"
                       placeholder="Enter password"
                       required
                     />
@@ -415,7 +417,7 @@ export default function AddUser() {
                       type="password" 
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none resize-none"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none resize-none placeholder:text-gray-300 placeholder:font-normal"
                       placeholder="Re-enter password"
                       required
                     />
@@ -442,11 +444,13 @@ export default function AddUser() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in-up">
           <div className="bg-white w-full max-w-sm rounded-lg shadow-2xl overflow-hidden relative transform scale-100 transition-transform border border-gray-200">
             
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <h3 className="font-bold text-gray-800 text-lg">Edit User</h3>
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+              <h3 className="font-bold text-gray-800 text-base">
+                Edit User
+              </h3>
               <button 
                 onClick={() => setIsEditModalOpen(false)}
-                className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -460,7 +464,7 @@ export default function AddUser() {
                     type="text" 
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none font-medium placeholder:text-gray-300 placeholder:font-normal"
                     placeholder="Enter full name"
                     required
                   />
@@ -471,7 +475,7 @@ export default function AddUser() {
                   <select 
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none font-medium"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -484,7 +488,7 @@ export default function AddUser() {
                     type="password" 
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none font-medium"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none font-medium placeholder:text-gray-300 placeholder:font-normal"
                     placeholder="Enter new password"
                   />
                 </div>
@@ -495,7 +499,7 @@ export default function AddUser() {
                     type="password" 
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all outline-none resize-none"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none resize-none placeholder:text-gray-300 placeholder:font-normal"
                     placeholder="Re-enter password"
                   />
                 </div>

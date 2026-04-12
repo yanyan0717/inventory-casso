@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Edit2, Trash2, Eye, X, Save, Camera } from 'lucide-react';
+import { Search, Settings2, Trash, BookOpen, X, Save, Camera, Plus, ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { showToast } from '../components/Toast';
 
@@ -17,12 +17,13 @@ export default function Materials() {
   const [searchTerm, setSearchTerm] = useState('');
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit' | 'view'>('add');
   const [saving, setSaving] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     id: '',
     material_id: '',
@@ -56,7 +57,7 @@ export default function Materials() {
     if (!confirm('Are you sure you want to delete this material?')) return;
 
     const { error } = await supabase.from('materials').delete().eq('id', id);
-    
+
     if (error) {
       showToast('Failed to delete material', 'error');
     } else {
@@ -102,7 +103,7 @@ export default function Materials() {
       closeModal();
       return;
     }
-    
+
     if (!formData.name || !formData.category) {
       showToast('Please fill in required fields', 'error');
       return;
@@ -137,15 +138,35 @@ export default function Materials() {
   };
 
   const getStatus = (stock: number) => {
-    if (stock === 0) return { label: 'Out of Stock', class: 'bg-red-100 text-red-700' };
-    if (stock < 6) return { label: 'Low Stock', class: 'bg-orange-100 text-orange-700' };
-    return { label: 'In Stock', class: 'bg-green-100 text-green-700' };
+    if (stock === 0) return { label: 'Out of Stock', class: 'bg-red-50 text-red-700 ring-red-600/10', dot: 'bg-red-600', text: 'text-red-600' };
+    if (stock < 6) return { label: 'Low Stock', class: 'bg-amber-50 text-amber-700 ring-amber-600/10', dot: 'bg-amber-600', text: 'text-amber-600' };
+    return { label: 'In Stock', class: 'bg-emerald-50 text-emerald-700 ring-emerald-600/10', dot: 'bg-emerald-600', text: 'text-emerald-600' };
+  };
+
+  const handleSort = (key: string) => {
+    setSortConfig((prev) => {
+      if (prev?.key === key) {
+        return prev.direction === 'asc' ? { key, direction: 'desc' } : null;
+      }
+      return { key, direction: 'asc' };
+    });
   };
 
   const filteredMaterials = materials.filter((mat) =>
     mat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mat.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const sortedMaterials = [...filteredMaterials].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const aVal = a[sortConfig.key as keyof Material];
+    const bVal = b[sortConfig.key as keyof Material];
+    if (aVal === null || aVal === undefined) return 1;
+    if (bVal === null || bVal === undefined) return -1;
+    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   return (
     <div className="flex flex-col space-y-4 relative w-full max-w-6xl">
@@ -167,10 +188,11 @@ export default function Materials() {
               className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none"
             />
           </div>
-          <button 
+          <button
             onClick={() => openModal('add')}
-            className="flex items-center gap-2 text-sm font-semibold text-white bg-[#166534] px-5 py-1.5 rounded-md hover:bg-[#14532d] transition-all active:scale-95 shadow-sm"
+            className="flex items-center gap-2 text-sm font-semibold cursor-pointer text-white bg-[#166534] px-5 py-1.5 rounded-md hover:bg-[#14532d] transition-all active:scale-95 shadow-sm"
           >
+            <Plus className="w-4 h-4" />
             Add Item
           </button>
         </div>
@@ -194,65 +216,84 @@ export default function Materials() {
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Item ID</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Picture</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider text-right">Stock</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Actions</th>
+                <tr className="bg-[#f8fafc] border-b border-gray-200">
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item ID</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Picture</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right cursor-pointer select-none group" onClick={() => handleSort('stocks')}>
+                    <span className="flex items-center justify-end gap-1">
+                      Stock 
+                      {sortConfig?.key === 'stocks' ? (
+                        sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-orange-500" /> : <ArrowDown className="w-3 h-3 text-orange-500" />
+                      ) : (
+                        <ChevronsUpDown className="w-3 h-3 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                      )}
+                    </span>
+                  </th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider cursor-pointer select-none group" onClick={() => handleSort('stocks')}>
+                    <span className="flex items-center gap-1">
+                      Status 
+                      {sortConfig?.key === 'stocks' ? (
+                        sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-orange-500" /> : <ArrowDown className="w-3 h-3 text-orange-500" />
+                      ) : (
+                        <ChevronsUpDown className="w-3 h-3 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                      )}
+                    </span>
+                  </th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-50">
-                {filteredMaterials.map((mat) => {
+                {sortedMaterials.map((mat) => {
                   const status = getStatus(mat.stocks);
                   return (
-                    <tr key={mat.id} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
-                      <td className="px-6 py-4 font-mono text-xs text-gray-400 font-bold">
+                    <tr key={mat.id} className="hover:bg-slate-50 transition-colors group border-b border-slate-100 last:border-0">
+                      <td className="px-6 py-1.5 font-mono text-[10px] text-slate-800 font-bold tracking-tight">
                         {mat.material_id || 'N/A'}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                      <td className="px-6 py-1.5">
+                        <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-sm">
                           {mat.picture ? (
                             <img src={mat.picture} alt={mat.name} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-gray-400 text-xs">No img</span>
+                            <span className="text-slate-400 text-[10px] font-bold">N/A</span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-bold text-gray-800 text-sm">{mat.name}</td>
-                      <td className="px-6 py-4 text-gray-600 capitalize text-sm font-semibold">{mat.category}</td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="font-bold text-gray-700 text-sm">{mat.stocks}</span>
+                      <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.name}</td>
+                      <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.category}</td>
+                      <td className="px-6 py-1.5 text-right">
+                        <span className={`text-sm tracking-tight ${status.text}`}>{mat.stocks}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${status.class}`}>
+                      <td className="px-6 py-1.5">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ring-1 ring-inset ${status.class}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${status.dot} animate-pulse`}></span>
                           {status.label}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button 
+                      <td className="px-6 py-1.5">
+                        <div className="flex items-center justify-center gap-0.5">
+                          <button
                             onClick={() => openModal('view', mat)}
-                            title="View"
-                            className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                            title="View Details"
+                            className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all"
                           >
-                            <Eye className="w-4 h-4" />
+                            <BookOpen className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => openModal('edit', mat)}
-                            title="Edit"
-                            className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-md transition-colors"
+                            title="Edit Item"
+                            className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-lg transition-all"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Settings2 className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDelete(mat.id)}
-                            title="Delete"
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                            title="Delete Item"
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -267,33 +308,32 @@ export default function Materials() {
 
 
 
-    {/* Modern Small Modal */}
+      {/* Modern Small Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white w-full max-w-sm rounded-md shadow-xl overflow-hidden relative border border-gray-200">
-            
-            <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
               <h3 className="font-bold text-gray-800 text-base">
                 {modalMode === 'add' ? 'Add Material' : modalMode === 'edit' ? 'Edit Material' : 'View Material'}
               </h3>
-              <button 
+              <button
                 onClick={closeModal}
-                className="w-7 h-7 bg-white border border-gray-200 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6">
-<div className="space-y-4">
-                
+              <div className="space-y-4">
+
                 {modalMode !== 'view' ? (
                   <div className="flex flex-col items-center">
-                    <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider mb-2">Picture</label>
                     <div className="relative">
-                      <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
+                      <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
                         {formData.picture ? (
-                          <img src={formData.picture} alt="Preview" className="w-full h-full object-cover" />
+                          <img src={formData.picture} alt="Preview" className="w-full h-full object-cover " />
                         ) : (
                           <Camera className="w-8 h-8 text-gray-300" />
                         )}
@@ -301,7 +341,7 @@ export default function Materials() {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute bottom-0 right-0 w-8 h-8 bg-[#166534] text-white rounded-lg flex items-center justify-center shadow-md hover:bg-[#14532d]"
+                        className="absolute bottom-0 right-0 w-8 h-8 bg-[#166534] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#14532d]"
                       >
                         <Camera className="w-4 h-4" />
                       </button>
@@ -316,8 +356,7 @@ export default function Materials() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider mb-2">Picture</label>
-                    <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
+                    <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
                       {formData.picture ? (
                         <img src={formData.picture} alt={formData.name} className="w-full h-full object-cover" />
                       ) : (
@@ -327,14 +366,14 @@ export default function Materials() {
                   </div>
                 )}
 
-                 <div className="space-y-1.5">
-                   <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Material ID</label>
-                  <input 
-                    type="text" 
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Material ID</label>
+                  <input
+                    type="text"
                     value={formData.material_id}
-                    onChange={(e) => setFormData({...formData, material_id: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, material_id: e.target.value })}
                     disabled={modalMode === 'view'}
-                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
+                    className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium placeholder:text-gray-300 placeholder:font-normal"
                     placeholder="e.g. MAT-001"
                     required
                   />
@@ -342,12 +381,12 @@ export default function Materials() {
 
                 <div className="space-y-1.5">
                   <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Item Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     disabled={modalMode === 'view'}
-                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
+                    className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium placeholder:text-gray-300 placeholder:font-normal"
                     placeholder="e.g. Printer Paper"
                     required
                   />
@@ -356,11 +395,11 @@ export default function Materials() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Category</label>
-                    <select 
+                    <select
                       value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       disabled={modalMode === 'view'}
-                      className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
+                      className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
                       required
                     >
                       <option value="">Select...</option>
@@ -370,15 +409,15 @@ export default function Materials() {
                       <option value="other">Other</option>
                     </select>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Stock Qty</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       value={formData.stocks}
-                      onChange={(e) => setFormData({...formData, stocks: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, stocks: e.target.value })}
                       disabled={modalMode === 'view'}
-                      className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-bold"
+                      className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-bold placeholder:text-gray-300 placeholder:font-normal"
                       placeholder="0"
                       min="0"
                     />
@@ -387,12 +426,12 @@ export default function Materials() {
 
                 <div className="space-y-1.5">
                   <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Description</label>
-                  <textarea 
+                  <textarea
                     value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     disabled={modalMode === 'view'}
                     rows={2}
-                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none resize-none disabled:opacity-70 disabled:bg-gray-100"
+                    className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none resize-none disabled:opacity-70 disabled:bg-gray-100 placeholder:text-gray-300 placeholder:font-normal"
                     placeholder="Brief details..."
                   ></textarea>
                 </div>
@@ -400,28 +439,28 @@ export default function Materials() {
 
               <div className="mt-8">
                 {modalMode !== 'view' ? (
-                    <button 
-                      type="submit" 
-                      disabled={saving}
-                      className="w-full bg-[#166534] hover:bg-[#14532d] text-white py-3 rounded-md text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
-                    >
-                      <Save className="w-5 h-5" />
-                      {saving ? 'Saving...' : 'Save Material'}
-                    </button>
-                  ) : (
-                    <button 
-                      type="button" 
-                      onClick={closeModal}
-                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-md text-sm font-bold transition-all"
-                    >
-                      Close View
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="w-full bg-[#166534] hover:bg-[#14532d] text-white py-3 rounded-md text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                  >
+                    <Save className="w-5 h-5" />
+                    {saving ? 'Saving...' : 'Save Material'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-md text-sm font-bold transition-all"
+                  >
+                    Close View
+                  </button>
+                )}
+              </div>
+            </form>
           </div>
-        )}
-      </div>
-    );
-  }
+        </div>
+      )}
+    </div>
+  );
+}

@@ -209,7 +209,7 @@ export default function Dashboard() {
         <div className="p-6 border-b border-gray-100">
           <h3 className="text-lg font-bold text-gray-800 font-[var(--heading)]">Recent Activity</h3>
         </div>
-        <div className="overflow-x-auto flex-1 p-6">
+        <div className="overflow-x-auto flex-1">
           {loading ? (
             <div className="text-center text-gray-400 py-8">Loading...</div>
           ) : recentMaterials.length === 0 ? (
@@ -217,28 +217,28 @@ export default function Dashboard() {
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item ID</th>
-                  <th className="pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item Name</th>
-                  <th className="pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                <tr className="bg-[#f8fafc] border-b border-gray-200">
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item ID</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item Name</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Date</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
                 {recentMaterials.map((mat) => {
                   const status = getStatus(mat.stocks);
                   return (
-                    <tr key={mat.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-4 font-mono text-xs text-gray-400">{mat.material_id}</td>
-                      <td className="py-4 font-medium text-gray-800">{mat.name}</td>
-                      <td className="py-4 text-gray-500 capitalize">{mat.category}</td>
-                      <td className="py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${status.class}`}>
+                    <tr key={mat.id} className="border-b border-gray-50 hover:bg-[#f0fdf4]/30 transition-colors">
+                      <td className="px-6 py-2.5 font-mono text-[11px] text-gray-500 font-bold">{mat.material_id}</td>
+                      <td className="px-6 py-2.5 font-bold text-sm text-gray-800">{mat.name}</td>
+                      <td className="px-6 py-2.5 text-gray-500 text-sm font-semibold capitalize">{mat.category}</td>
+                      <td className="px-6 py-2.5">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${status.class}`}>
                           {status.label}
                         </span>
                       </td>
-                      <td className="py-4 text-gray-500">{formatDate(mat.created_at)}</td>
+                      <td className="px-6 py-2.5 text-gray-500 text-xs">{formatDate(mat.created_at)}</td>
                     </tr>
                   );
                 })}
