@@ -72,7 +72,7 @@ export default function LandingPage() {
                         ILIGAN CITY
                     </h1>
                     <p className="text-white/80 tracking-[0.15em] text-[13px] md:text-sm font-semibold uppercase font-[var(--sans)] leading-relaxed">
-                        Assessor's Office Digital Portal
+                        Assessor's Office Digital Inventory System
                     </p>
                 </div>
             </div>
