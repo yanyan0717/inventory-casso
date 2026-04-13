@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Package, TrendingUp, AlertTriangle, CheckCircle2, X } from 'lucide-react';
+import { Package, TrendingUp, AlertTriangle, CheckCircle2, X, FileDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { StatsSkeleton, CardSkeleton, TableSkeleton } from '../components/SkeletonLoader';
+import { jsPDF } from 'jspdf';
 
 interface Material {
   id: string;
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStat, setSelectedStat] = useState<string | null>(null);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   const fetchMaterials = async () => {
     const { data } = await supabase
@@ -107,6 +109,121 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
+  const generatePDF = () => {
+    if (loading) return;
+    
+    setGeneratingPDF(true);
+    
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let yPos = margin;
+    
+    doc.setFontSize(18);
+    doc.setTextColor(22, 101, 52);
+    doc.text('Inventory Dashboard Report', pageWidth / 2, yPos, { align: 'center' });
+    
+    yPos += 8;
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, pageWidth / 2, yPos, { align: 'center' });
+    
+    yPos += 12;
+    doc.setDrawColor(200);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    
+    yPos += 8;
+    doc.setFontSize(12);
+    doc.setTextColor(40);
+    doc.text('Summary Statistics', margin, yPos);
+    
+    yPos += 6;
+    doc.setFontSize(10);
+    doc.setTextColor(60);
+    doc.text(`Total Materials: ${totalMaterials}`, margin, yPos);
+    doc.text(`Total Stock: ${totalStock}`, margin + 50, yPos);
+    doc.text(`Low Stock: ${lowStock}`, margin + 95, yPos);
+    doc.text(`Out of Stock: ${outOfStock}`, margin + 140, yPos);
+    
+    yPos += 10;
+    doc.setDrawColor(200);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    
+    yPos += 8;
+    doc.setFontSize(12);
+    doc.setTextColor(40);
+    doc.text('Stock by Category', margin, yPos);
+    
+    yPos += 6;
+    doc.setFontSize(9);
+    doc.setTextColor(60);
+    categoryLabels.forEach((cat, i) => {
+      const value = categoryData[cat] || 0;
+      const percentage = maxStock > 0 ? ((value / maxStock) * 100).toFixed(1) : 0;
+      doc.text(`${cat.charAt(0).toUpperCase() + cat.slice(1)}: ${value} units (${percentage}%)`, margin, yPos + (i * 5));
+    });
+    
+    yPos += (categoryLabels.length * 5) + 8;
+    doc.setDrawColor(200);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    
+    yPos += 8;
+    doc.setFontSize(12);
+    doc.setTextColor(40);
+    doc.text('Stock Status', margin, yPos);
+    
+    yPos += 6;
+    doc.setFontSize(9);
+    doc.setTextColor(60);
+    const inStock = materials.filter(m => m.stocks >= 6).length;
+    doc.text(`In Stock: ${inStock} items`, margin, yPos);
+    doc.text(`Low Stock: ${lowStock} items`, margin + 50, yPos);
+    doc.text(`Out of Stock: ${outOfStock} items`, margin + 100, yPos);
+    
+    yPos += 10;
+    doc.setDrawColor(200);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    
+    yPos += 8;
+    doc.setFontSize(12);
+    doc.setTextColor(40);
+    doc.text('Recent Materials', margin, yPos);
+    
+    yPos += 4;
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ID', margin, yPos);
+    doc.text('Name', margin + 25, yPos);
+    doc.text('Category', margin + 75, yPos);
+    doc.text('Unit', margin + 105, yPos);
+    doc.text('Stock', margin + 125, yPos);
+    doc.text('Status', margin + 145, yPos);
+    
+    yPos += 4;
+    doc.setDrawColor(220);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    
+    yPos += 4;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60);
+    
+    const displayMaterials = recentMaterials.slice(0, 8);
+    displayMaterials.forEach((mat) => {
+      const status = getStatus(mat.stocks);
+      doc.text((mat.material_id || 'N/A').substring(0, 15), margin, yPos);
+      doc.text(mat.name.substring(0, 25), margin + 25, yPos);
+      doc.text(mat.category.substring(0, 15), margin + 75, yPos);
+      doc.text(mat.unit || '-', margin + 105, yPos);
+      doc.text(mat.stocks.toString(), margin + 125, yPos);
+      doc.text(status.label, margin + 145, yPos);
+      yPos += 5;
+    });
+    
+    doc.save(`Dashboard_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    setGeneratingPDF(false);
+  };
+
   const categoryColors: Record<string, string> = {
     furniture: 'bg-[#166534]',
     electronics: 'bg-blue-500',
@@ -116,8 +233,18 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col space-y-4 relative w-full max-w-full">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Dashboard Overview</h2>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Dashboard Overview</h2>
+        </div>
+        <button
+          onClick={generatePDF}
+          disabled={generatingPDF}
+          className="flex items-center gap-2 text-sm font-semibold cursor-pointer text-white bg-red-600 px-4 py-2 rounded-md hover:bg-red-700 disabled:bg-gray-400 transition-all active:scale-95 shadow-sm"
+        >
+          <FileDown className={`w-4 h-4 ${generatingPDF ? 'animate-spin' : ''}`} />
+          {generatingPDF ? 'Generating...' : 'Export PDF'}
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -148,40 +275,43 @@ export default function Dashboard() {
         {/* Bar Chart - Stock by Category */}
         <div className="bg-white rounded-md p-5 shadow-sm border border-gray-200">
           <h3 className="text-base font-bold text-gray-800 font-[var(--heading)] mb-4">Stock by Category</h3>
-          {loading ? (
-            <CardSkeleton />
-          ) : categoryLabels.length === 0 ? (
-            <div className="h-40 flex items-center justify-center text-gray-400">No data available</div>
-          ) : (
-            <div className="space-y-3">
-              {categoryLabels.map((cat) => {
-                const value = categoryData[cat];
-                const percentage = (value / maxStock) * 100;
-                return (
-                  <div key={cat} className="space-y-1.5">
-                    <div className="flex justify-between text-sm">
-                      <span className="capitalize font-medium text-gray-700">{cat}</span>
-                      <span className="text-gray-500">{value} units</span>
+          <div className="min-h-[140px]">
+            {loading ? (
+              <CardSkeleton />
+            ) : categoryLabels.length === 0 ? (
+              <div className="h-40 flex items-center justify-center text-gray-400">No data available</div>
+            ) : (
+              <div className="space-y-3">
+                {categoryLabels.map((cat) => {
+                  const value = categoryData[cat];
+                  const percentage = (value / maxStock) * 100;
+                  return (
+                    <div key={cat} className="space-y-1.5">
+                      <div className="flex justify-between text-sm">
+                        <span className="capitalize font-medium text-gray-700">{cat}</span>
+                        <span className="text-gray-500">{value} units</span>
+                      </div>
+                      <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${categoryColors[cat] || 'bg-[#166534]'}`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${categoryColors[cat] || 'bg-[#166534]'}`}
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stock Status Distribution */}
         <div className="bg-white rounded-md p-5 shadow-sm border border-gray-200">
           <h3 className="text-base font-bold text-gray-800 font-[var(--heading)] mb-4">Stock Status Distribution</h3>
-          {loading ? (
-            <CardSkeleton />
-          ) : (
+          <div className="min-h-[140px]">
+            {loading ? (
+              <CardSkeleton />
+            ) : (
             <div className="flex items-center justify-center">
               <div className="relative w-32 h-32">
                 <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
@@ -235,6 +365,7 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
 
@@ -328,7 +459,7 @@ export default function Dashboard() {
           <h3 className="text-base font-bold text-gray-800 font-[var(--heading)]">Recent Activity</h3>
         </div>
         <div className="p-4">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" style={{ minHeight: '150px' }}>
             {loading ? (
               <TableSkeleton rows={5} />
             ) : recentMaterials.length === 0 ? (
