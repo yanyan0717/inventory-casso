@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { showToast } from '../components/Toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface RegisterProps {
   onModeChange?: (mode: 'login' | 'register') => void;
@@ -10,7 +11,9 @@ export default function Register({ onModeChange }: RegisterProps) {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -146,11 +149,11 @@ export default function Register({ onModeChange }: RegisterProps) {
             </div>
             <input
               id="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-11 pr-4 py-[14px] rounded-lg border border-[var(--border)] bg-white text-black text-sm focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all outline-none placeholder-shown:placeholder-gray-400 peer"
+              className="w-full pl-11 pr-12 py-[14px] rounded-lg border border-[var(--border)] bg-white text-black text-sm focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all outline-none placeholder-shown:placeholder-gray-400 peer"
               placeholder=" "
             />
             <label
@@ -159,6 +162,15 @@ export default function Register({ onModeChange }: RegisterProps) {
             >
                Password
             </label>
+            {password.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center z-10 text-gray-400 hover:text-green-600 transition-colors"
+              >
+                {showPassword ? <Eye className="h-[18px] w-[18px]" /> : <EyeOff className="h-[18px] w-[18px]" />}
+              </button>
+            )}
           </div>
 
           <div className="relative group">
@@ -169,11 +181,11 @@ export default function Register({ onModeChange }: RegisterProps) {
             </div>
             <input
               id="confirmPassword"
-              type="password"
+              type={showConfirmPassword ? 'text' : 'password'}
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full pl-11 pr-4 py-[14px] rounded-lg border border-[var(--border)] bg-white text-black text-sm focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all outline-none placeholder-shown:placeholder-gray-400 peer"
+              className="w-full pl-11 pr-12 py-[14px] rounded-lg border border-[var(--border)] bg-white text-black text-sm focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all outline-none placeholder-shown:placeholder-gray-400 peer"
               placeholder=" "
             />
             <label
@@ -182,6 +194,15 @@ export default function Register({ onModeChange }: RegisterProps) {
             >
                Confirm Password
             </label>
+            {confirmPassword.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center z-10 text-gray-400 hover:text-green-600 transition-colors"
+              >
+                {showConfirmPassword ? <Eye className="h-[18px] w-[18px]" /> : <EyeOff className="h-[18px] w-[18px]" />}
+              </button>
+            )}
           </div>
         </div>
 
