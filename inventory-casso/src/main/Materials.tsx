@@ -9,10 +9,14 @@ interface Material {
   material_id: string;
   name: string;
   category: string;
+  unit: string;
   stocks: number;
   description: string;
   picture: string | null;
   added_by: string | null;
+  profiles?: {
+    full_name: string | null;
+  };
 }
 
 export default function Materials() {
@@ -37,6 +41,7 @@ export default function Materials() {
     material_id: '',
     name: '',
     category: '',
+    unit: '',
     stocks: '',
     description: '',
     picture: '',
@@ -46,7 +51,7 @@ export default function Materials() {
   const fetchMaterials = async () => {
     const { data, error } = await supabase
       .from('materials')
-      .select('*')
+      .select('*, profiles:created_by(full_name)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -101,12 +106,13 @@ export default function Materials() {
         material_id: material.material_id || '',
         name: material.name,
         category: material.category,
+        unit: material.unit || '',
         stocks: material.stocks.toString(),
         description: material.description || '',
         picture: material.picture || '',
       });
     } else {
-      setFormData({ id: '', material_id: '', name: '', category: '', stocks: '', description: '', picture: '' });
+      setFormData({ id: '', material_id: '', name: '', category: '', unit: '', stocks: '', description: '', picture: '' });
     }
     setIsModalOpen(true);
   };
@@ -137,14 +143,24 @@ export default function Materials() {
     }
 
     setSaving(true);
-    const materialData = {
+    // Get current user for the created_by field
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const materialData: any = {
       material_id: formData.material_id,
       name: formData.name,
       category: formData.category,
+      unit: formData.unit,
       stocks: parseInt(formData.stocks) || 0,
       description: formData.description,
       picture: formData.picture || null,
     };
+
+    // Only set created_by on new items, or if you want to track who edited it
+    if (modalMode === 'add' && user) {
+      materialData.created_by = user.id;
+      materialData.added_by = user.email; // Fallback for old display logic
+    }
 
     let error;
     if (modalMode === 'edit') {
@@ -257,6 +273,7 @@ export default function Materials() {
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Picture</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Name</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Unit</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Added By</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right cursor-pointer select-none group" onClick={() => handleSort('stocks')}>
                     <span className="flex items-center justify-end gap-1">
@@ -300,7 +317,12 @@ export default function Materials() {
                       </td>
                       <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.name}</td>
                       <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.category}</td>
-                      <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.added_by || '-'}</td>
+                      <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.unit || '-'}</td>
+                      <td className="px-6 py-1.5 text-slate-800 text-sm">
+                        {Array.isArray(mat.profiles) 
+                          ? (mat.profiles[0]?.full_name || mat.added_by || '-') 
+                          : (mat.profiles?.full_name || mat.added_by || '-')}
+                      </td>
                       <td className="px-6 py-1.5 text-right">
                         <span className={`text-sm tracking-tight ${status.text}`}>{mat.stocks}</span>
                       </td>
@@ -387,7 +409,7 @@ export default function Materials() {
       {/* Modern Small Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-sm rounded-md shadow-xl overflow-hidden relative border border-gray-200">
+          <div className="bg-white w-full max-w-xl rounded-md shadow-xl overflow-hidden relative border border-gray-200">
 
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
               <h3 className="font-bold text-gray-800 text-base">
@@ -402,118 +424,128 @@ export default function Materials() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6">
-              <div className="space-y-4">
-
-                {modalMode !== 'view' ? (
-                  <div className="flex flex-col items-center">
-                    <div className="relative">
-                      <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
-                        {formData.picture ? (
-                          <img src={formData.picture} alt="Preview" className="w-full h-full object-cover " />
-                        ) : (
-                          <Camera className="w-8 h-8 text-gray-300" />
-                        )}
-                      </div>
+              <div className="flex flex-col sm:flex-row gap-6">
+                {/* Left Side: Picture */}
+                <div className="flex flex-col items-center shrink-0">
+                  <div className="relative">
+                    <div className="w-28 h-28 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
+                      {formData.picture ? (
+                        <img src={formData.picture} alt="Preview" className="w-full h-full object-cover " />
+                      ) : (
+                        modalMode === 'view' ? <span className="text-gray-400 text-[10px] font-bold">N/A</span> : <Camera className="w-8 h-8 text-gray-300" />
+                      )}
+                    </div>
+                    {modalMode !== 'view' && (
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute bottom-0 right-0 w-8 h-8 bg-[#166534] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#14532d]"
+                        className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#166534] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#14532d] z-10"
                       >
                         <Camera className="w-4 h-4" />
                       </button>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center">
-                    <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
-                      {formData.picture ? (
-                        <img src={formData.picture} alt={formData.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-gray-400 text-xs">No picture</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Material ID</label>
-                  <input
-                    type="text"
-                    value={formData.material_id}
-                    onChange={(e) => setFormData({ ...formData, material_id: e.target.value })}
-                    disabled={modalMode === 'view'}
-                    className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium placeholder:text-gray-300 placeholder:font-normal"
-                    placeholder="e.g. MAT-001"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Item Name</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    disabled={modalMode === 'view'}
-                    className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium placeholder:text-gray-300 placeholder:font-normal"
-                    placeholder="e.g. Printer Paper"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Category</label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      disabled={modalMode === 'view'}
-                      className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
-                      required
-                    >
-                      <option value="">Select...</option>
-                      <option value="furniture">Furniture</option>
-                      <option value="electronics">Electronics</option>
-                      <option value="supplies">Supplies</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Stock Qty</label>
+                    )}
                     <input
-                      type="number"
-                      value={formData.stocks}
-                      onChange={(e) => setFormData({ ...formData, stocks: e.target.value })}
-                      disabled={modalMode === 'view'}
-                      className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-bold placeholder:text-gray-300 placeholder:font-normal"
-                      placeholder="0"
-                      min="0"
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    disabled={modalMode === 'view'}
-                    rows={2}
-                    className="w-full px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none resize-none disabled:opacity-70 disabled:bg-gray-100 placeholder:text-gray-300 placeholder:font-normal"
-                    placeholder="Brief details..."
-                  ></textarea>
+                {/* Right Side: Form Fields */}
+                <div className="flex-1 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Material ID</label>
+                      <input
+                        type="text"
+                        value={formData.material_id}
+                        onChange={(e) => setFormData({ ...formData, material_id: e.target.value })}
+                        disabled={modalMode === 'view'}
+                        className="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium placeholder:text-gray-300 placeholder:font-normal"
+                        placeholder="e.g. MAT-001"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Item Name</label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        disabled={modalMode === 'view'}
+                        className="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium placeholder:text-gray-300 placeholder:font-normal"
+                        placeholder="e.g. Printer Paper"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Category</label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        disabled={modalMode === 'view'}
+                        className="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
+                        required
+                      >
+                        <option value="">Select...</option>
+                        <option value="furniture">Furniture</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="supplies">Supplies</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Unit</label>
+                      <select
+                        value={formData.unit}
+                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                        disabled={modalMode === 'view'}
+                        className="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-medium"
+                        required
+                      >
+                        <option value="">Select...</option>
+                        <option value="pcs">pcs</option>
+                        <option value="box">box</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Stock Qty</label>
+                      <input
+                        type="number"
+                        value={formData.stocks}
+                        onChange={(e) => setFormData({ ...formData, stocks: e.target.value })}
+                        disabled={modalMode === 'view'}
+                        className="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none disabled:opacity-70 disabled:bg-gray-100 font-bold placeholder:text-gray-300 placeholder:font-normal"
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Description</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      disabled={modalMode === 'view'}
+                      rows={2}
+                      className="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50/30 text-black text-sm focus:ring-2 focus:ring-[#166534]/10 focus:border-[#166534] transition-all outline-none resize-none disabled:opacity-70 disabled:bg-gray-100 placeholder:text-gray-300 placeholder:font-normal"
+                      placeholder="Brief details..."
+                    ></textarea>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-8">
+              <div className="mt-6">
                 {modalMode !== 'view' ? (
                   <button
                     type="submit"

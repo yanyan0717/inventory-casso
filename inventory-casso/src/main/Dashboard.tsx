@@ -8,9 +8,13 @@ interface Material {
   material_id: string;
   name: string;
   category: string;
+  unit: string;
   stocks: number;
   description: string;
   created_at: string;
+  profiles?: {
+    full_name: string | null;
+  };
 }
 
 export default function Dashboard() {
@@ -22,7 +26,7 @@ export default function Dashboard() {
   const fetchMaterials = async () => {
     const { data } = await supabase
       .from('materials')
-      .select('*')
+      .select('*, profiles:created_by(full_name)')
       .order('created_at', { ascending: false });
     setMaterials(data || []);
     setLoading(false);
@@ -336,6 +340,8 @@ export default function Dashboard() {
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item ID</th>
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item Name</th>
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Unit</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Added By</th>
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Date</th>
                   </tr>
@@ -348,6 +354,12 @@ export default function Dashboard() {
                         <td className="px-6 py-1.5 font-mono text-[10px] text-slate-800 font-bold tracking-tight">{mat.material_id}</td>
                         <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.name}</td>
                         <td className="px-6 py-1.5 text-slate-800 text-sm capitalize">{mat.category}</td>
+                        <td className="px-6 py-1.5 text-slate-800 text-sm">{mat.unit || '-'}</td>
+                        <td className="px-6 py-1.5 text-slate-800 text-sm">
+                          {Array.isArray(mat.profiles) 
+                            ? (mat.profiles[0]?.full_name || '-') 
+                            : (mat.profiles?.full_name || '-')}
+                        </td>
                         <td className="px-6 py-1.5">
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${status.class}`}>
                             {status.label}
@@ -384,6 +396,8 @@ export default function Dashboard() {
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item ID</th>
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Name</th>
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right">Unit</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right">Added By</th>
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right">Stock</th>
                     <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Status</th>
                   </tr>
@@ -396,6 +410,12 @@ export default function Dashboard() {
                         <td className="px-6 py-2 font-mono text-[10px] text-slate-800 font-bold">{mat.material_id}</td>
                         <td className="px-6 py-2 text-slate-800 text-sm">{mat.name}</td>
                         <td className="px-6 py-2 text-slate-800 text-sm capitalize">{mat.category}</td>
+                        <td className="px-6 py-2 text-right text-slate-800 text-sm">{mat.unit || '-'}</td>
+                        <td className="px-6 py-2 text-right text-slate-800 text-sm">
+                            {Array.isArray(mat.profiles) 
+                              ? (mat.profiles[0]?.full_name || '-') 
+                              : (mat.profiles?.full_name || '-')}
+                        </td>
                         <td className="px-6 py-2 text-right text-slate-800 text-sm">{mat.stocks}</td>
                         <td className="px-6 py-2">
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${status.class}`}>
