@@ -93,11 +93,25 @@ export default function Materials() {
   const confirmDelete = async () => {
     if (!itemToDelete) return;
 
+    const materialToDelete = materials.find(m => m.id === itemToDelete);
+    
+    const { data: { user } } = await supabase.auth.getUser();
+
     const { error } = await supabase.from('materials').delete().eq('id', itemToDelete);
 
     if (error) {
       showToast('Failed to delete material', 'error');
     } else {
+      if (user && materialToDelete) {
+        await supabase.from('material_logs').insert({
+          material_id: materialToDelete.id,
+          material_name: materialToDelete.name,
+          action_type: 'DELETE',
+          quantity: materialToDelete.stocks,
+          reason: 'Material deleted',
+          user_id: user.id,
+        });
+      }
       showToast('Material deleted successfully', 'success');
       fetchMaterials();
     }
@@ -286,10 +300,23 @@ export default function Materials() {
     }
 
     let error;
+    
     if (modalMode === 'edit') {
       ({ error } = await supabase.from('materials').update(materialData).eq('id', formData.id));
     } else {
-      ({ error } = await supabase.from('materials').insert(materialData));
+      const { data: newMaterial, error: insertError } = await supabase.from('materials').insert(materialData).select().single();
+      if (insertError) {
+        error = insertError;
+      } else if (newMaterial && user) {
+        await supabase.from('material_logs').insert({
+          material_id: newMaterial.id,
+          material_name: newMaterial.name,
+          action_type: 'ADD',
+          quantity: newMaterial.stocks,
+          reason: 'Material added to inventory',
+          user_id: user.id,
+        });
+      }
     }
 
     setSaving(false);
@@ -706,11 +733,6 @@ export default function Materials() {
                         <option value="">Select...</option>
                         <option value="pcs">pcs</option>
                         <option value="box">box</option>
-                        <option value="pck">pck</option>
-                        <option value="bottle">bottle</option>
-                        <option value="rolls">rolls</option>
-                        <option value="Gal">Gal</option>
-                        <option value="can">can</option>
                       </select>
                     </div>
 
