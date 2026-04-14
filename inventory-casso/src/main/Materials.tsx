@@ -60,7 +60,7 @@ export default function Materials() {
     const { data, error } = await supabase
       .from('materials')
       .select('*, profiles!created_by(full_name)')
-      .order('created_at', { ascending: false });
+      .order('material_id', { ascending: true }); // Ordered by material_id now
 
     if (error) {
       showToast('Failed to load materials', 'error');
@@ -203,7 +203,39 @@ export default function Materials() {
         picture: material.picture || '',
       });
     } else {
-      setFormData({ id: '', material_id: '', name: '', category: '', unit: '', stocks: '', description: '', picture: '' });
+      let nextIdStr = '';
+      if (materials.length > 0) {
+        let maxNum = 0;
+        let prefix = '';
+        let padLength = 3;
+
+        materials.forEach(m => {
+          if (!m.material_id) return;
+          const match = m.material_id.match(/^(.*?)(\d+)$/);
+          if (match) {
+            const numStr = match[2];
+            const num = parseInt(numStr, 10);
+            if (num >= maxNum) {
+              maxNum = num;
+              prefix = match[1];
+              padLength = Math.max(padLength, numStr.length);
+            }
+          }
+        });
+
+        if (maxNum > 0) {
+          nextIdStr = `${prefix}${String(maxNum + 1).padStart(padLength, '0')}`;
+        } else {
+          // Fallback if no numeric IDs exist
+          nextIdStr = materials.length > 0
+            ? String(materials.length + 1).padStart(3, '0')
+            : '001';
+        }
+      } else {
+        nextIdStr = '001';
+      }
+
+      setFormData({ id: '', material_id: nextIdStr, name: '', category: '', unit: '', stocks: '', description: '', picture: '' });
     }
     setIsModalOpen(true);
   };
@@ -315,16 +347,16 @@ export default function Materials() {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    
+
     // Header section
     doc.setFontSize(18);
     doc.setTextColor(22, 101, 52); // Project green
     doc.text('Inventory CASSO System', 14, 22);
-    
+
     doc.setFontSize(11);
     doc.setTextColor(100, 100, 100);
     doc.text(`Materials Inventory Report - Generated on ${new Date().toLocaleDateString()}`, 14, 30);
-    
+
     const tableData = sortedMaterials.map(mat => [
       mat.material_id || 'N/A',
       mat.name,
@@ -338,14 +370,14 @@ export default function Materials() {
       startY: 40,
       head: [['Item ID', 'Name', 'Category', 'Unit', 'Stock', 'Status']],
       body: tableData,
-      headStyles: { 
+      headStyles: {
         fillColor: [22, 101, 52], // Project green
         textColor: [255, 255, 255],
         fontSize: 10,
         fontStyle: 'bold'
       },
-      styles: { 
-        fontSize: 9, 
+      styles: {
+        fontSize: 9,
         cellPadding: 3,
         valign: 'middle'
       },
@@ -420,7 +452,16 @@ export default function Materials() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[#f8fafc] border-b border-gray-200">
-                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Item ID</th>
+                  <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider cursor-pointer select-none group" onClick={() => handleSort('material_id')}>
+                    <span className="flex items-center gap-1">
+                      Item ID
+                      {sortConfig?.key === 'material_id' ? (
+                        sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-orange-500" /> : <ArrowDown className="w-3 h-3 text-orange-500" />
+                      ) : (
+                        <ChevronsUpDown className="w-3 h-3 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                      )}
+                    </span>
+                  </th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Picture</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Name</th>
                   <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Category</th>
@@ -536,8 +577,8 @@ export default function Materials() {
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${currentPage === page
-                      ? 'bg-[#166534] text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#166534] text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
                   {page}
@@ -665,6 +706,11 @@ export default function Materials() {
                         <option value="">Select...</option>
                         <option value="pcs">pcs</option>
                         <option value="box">box</option>
+                        <option value="pck">pck</option>
+                        <option value="bottle">bottle</option>
+                        <option value="rolls">rolls</option>
+                        <option value="Gal">Gal</option>
+                        <option value="can">can</option>
                       </select>
                     </div>
 
