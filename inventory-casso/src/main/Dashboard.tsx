@@ -283,7 +283,7 @@ export default function Dashboard() {
           <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Dashboard Overview</h2>
         </div>
         <button
-          onClick={generatePDF}
+          onClick={() => generatePDF()}
           disabled={generatingPDF}
           className="flex items-center gap-2 text-sm font-semibold cursor-pointer text-white bg-[#166534] px-4 py-2 rounded-md hover:bg-[#14532d] disabled:bg-gray-400 transition-all active:scale-95 shadow-sm"
         >
