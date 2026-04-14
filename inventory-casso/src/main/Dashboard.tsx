@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStat, setSelectedStat] = useState<string | null>(null);
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [generatingModalPDF, setGeneratingModalPDF] = useState(false);
 
   const fetchMaterials = async () => {
     const { data } = await supabase
@@ -109,85 +110,115 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
-  const generatePDF = () => {
+  const generatePDF = (statTitle?: string, isModal: boolean = false) => {
     if (loading) return;
     
-    setGeneratingPDF(true);
+    if (isModal) {
+      setGeneratingModalPDF(true);
+    } else {
+      setGeneratingPDF(true);
+    }
     
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
     let yPos = margin;
     
+    const selectedStatType = statTitle ? stats.find(s => s.title === statTitle)?.type : undefined;
+    const filteredMaterials = selectedStatType ? getFilteredMaterialsForStatType(selectedStatType) : materials;
+    const filteredCount = filteredMaterials.length;
+    
+    let reportTitle = 'Inventory Dashboard Report';
+    if (statTitle === 'Total Materials') reportTitle = 'All Materials Report';
+    else if (statTitle === 'Total Stock') reportTitle = 'Total Stock Report';
+    else if (statTitle === 'Low Stock') reportTitle = 'Low Stock Materials Report';
+    else if (statTitle === 'Out of Stock') reportTitle = 'Out of Stock Materials Report';
+    
     doc.setFontSize(18);
     doc.setTextColor(22, 101, 52);
-    doc.text('Inventory Dashboard Report', pageWidth / 2, yPos, { align: 'center' });
+    doc.text(reportTitle, pageWidth / 2, yPos, { align: 'center' });
     
     yPos += 8;
     doc.setFontSize(9);
     doc.setTextColor(100);
     doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, pageWidth / 2, yPos, { align: 'center' });
     
+    if (statTitle) {
+      yPos += 6;
+      doc.setFontSize(10);
+      doc.setTextColor(60);
+      doc.text(`Total Items: ${filteredCount}`, pageWidth / 2, yPos, { align: 'center' });
+    }
+    
     yPos += 12;
     doc.setDrawColor(200);
     doc.line(margin, yPos, pageWidth - margin, yPos);
     
-    yPos += 8;
-    doc.setFontSize(12);
-    doc.setTextColor(40);
-    doc.text('Summary Statistics', margin, yPos);
+    if (!statTitle) {
+      yPos += 8;
+      doc.setFontSize(12);
+      doc.setTextColor(40);
+      doc.text('Summary Statistics', margin, yPos);
+      
+      yPos += 6;
+      doc.setFontSize(10);
+      doc.setTextColor(60);
+      doc.text(`Total Materials: ${totalMaterials}`, margin, yPos);
+      doc.text(`Total Stock: ${totalStock}`, margin + 50, yPos);
+      doc.text(`Low Stock: ${lowStock}`, margin + 95, yPos);
+      doc.text(`Out of Stock: ${outOfStock}`, margin + 140, yPos);
+      
+      yPos += 10;
+      doc.setDrawColor(200);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      
+      yPos += 8;
+      doc.setFontSize(12);
+      doc.setTextColor(40);
+      doc.text('Stock by Category', margin, yPos);
+      
+      yPos += 6;
+      doc.setFontSize(9);
+      doc.setTextColor(60);
+      categoryLabels.forEach((cat, i) => {
+        const value = categoryData[cat] || 0;
+        const percentage = maxStock > 0 ? ((value / maxStock) * 100).toFixed(1) : 0;
+        doc.text(`${cat.charAt(0).toUpperCase() + cat.slice(1)}: ${value} units (${percentage}%)`, margin, yPos + (i * 5));
+      });
+      
+      yPos += (categoryLabels.length * 5) + 8;
+      doc.setDrawColor(200);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      
+      yPos += 8;
+      doc.setFontSize(12);
+      doc.setTextColor(40);
+      doc.text('Stock Status', margin, yPos);
+      
+      yPos += 6;
+      doc.setFontSize(9);
+      doc.setTextColor(60);
+      const inStock = materials.filter(m => m.stocks >= 6).length;
+      doc.text(`In Stock: ${inStock} items`, margin, yPos);
+      doc.text(`Low Stock: ${lowStock} items`, margin + 50, yPos);
+      doc.text(`Out of Stock: ${outOfStock} items`, margin + 100, yPos);
+      
+      yPos += 10;
+      doc.setDrawColor(200);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+    }
     
-    yPos += 6;
-    doc.setFontSize(10);
-    doc.setTextColor(60);
-    doc.text(`Total Materials: ${totalMaterials}`, margin, yPos);
-    doc.text(`Total Stock: ${totalStock}`, margin + 50, yPos);
-    doc.text(`Low Stock: ${lowStock}`, margin + 95, yPos);
-    doc.text(`Out of Stock: ${outOfStock}`, margin + 140, yPos);
-    
-    yPos += 10;
-    doc.setDrawColor(200);
-    doc.line(margin, yPos, pageWidth - margin, yPos);
-    
-    yPos += 8;
-    doc.setFontSize(12);
-    doc.setTextColor(40);
-    doc.text('Stock by Category', margin, yPos);
-    
-    yPos += 6;
-    doc.setFontSize(9);
-    doc.setTextColor(60);
-    categoryLabels.forEach((cat, i) => {
-      const value = categoryData[cat] || 0;
-      const percentage = maxStock > 0 ? ((value / maxStock) * 100).toFixed(1) : 0;
-      doc.text(`${cat.charAt(0).toUpperCase() + cat.slice(1)}: ${value} units (${percentage}%)`, margin, yPos + (i * 5));
-    });
-    
-    yPos += (categoryLabels.length * 5) + 8;
-    doc.setDrawColor(200);
-    doc.line(margin, yPos, pageWidth - margin, yPos);
-    
-    yPos += 8;
-    doc.setFontSize(12);
-    doc.setTextColor(40);
-    doc.text('Stock Status', margin, yPos);
-    
-    yPos += 6;
-    doc.setFontSize(9);
-    doc.setTextColor(60);
-    const inStock = materials.filter(m => m.stocks >= 6).length;
-    doc.text(`In Stock: ${inStock} items`, margin, yPos);
-    doc.text(`Low Stock: ${lowStock} items`, margin + 50, yPos);
-    doc.text(`Out of Stock: ${outOfStock} items`, margin + 100, yPos);
-    
-    yPos += 10;
-    doc.setDrawColor(200);
-    doc.line(margin, yPos, pageWidth - margin, yPos);
-    
-    yPos += 8;
-    doc.setFontSize(12);
-    doc.setTextColor(40);
-    doc.text('Recent Materials', margin, yPos);
+    if (!statTitle) {
+      yPos += 8;
+      doc.setFontSize(12);
+      doc.setTextColor(40);
+      doc.text('Recent Materials', margin, yPos);
+    } else {
+      yPos += 8;
+      doc.setFontSize(12);
+      doc.setTextColor(40);
+      doc.text('Material Details', margin, yPos);
+    }
     
     yPos += 4;
     doc.setFontSize(8);
@@ -208,7 +239,7 @@ export default function Dashboard() {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(60);
     
-    const displayMaterials = recentMaterials.slice(0, 8);
+    const displayMaterials = statTitle ? filteredMaterials : recentMaterials.slice(0, 8);
     displayMaterials.forEach((mat) => {
       const status = getStatus(mat.stocks);
       doc.text((mat.material_id || 'N/A').substring(0, 15), margin, yPos);
@@ -220,8 +251,22 @@ export default function Dashboard() {
       yPos += 5;
     });
     
-    doc.save(`Dashboard_Report_${new Date().toISOString().split('T')[0]}.pdf`);
-    setGeneratingPDF(false);
+    const fileName = statTitle 
+      ? `${statTitle.replace(/\s+/g, '_')}_Report_${new Date().toISOString().split('T')[0]}.pdf`
+      : `Dashboard_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+    if (isModal) {
+      setGeneratingModalPDF(false);
+    } else {
+      setGeneratingPDF(false);
+    }
+  };
+  
+  const getFilteredMaterialsForStatType = (type: string) => {
+    if (type === 'all') return materials;
+    if (type === 'low') return materials.filter(m => m.stocks > 0 && m.stocks < 6);
+    if (type === 'out') return materials.filter(m => m.stocks === 0);
+    return [];
   };
 
   const categoryColors: Record<string, string> = {
@@ -240,7 +285,7 @@ export default function Dashboard() {
         <button
           onClick={generatePDF}
           disabled={generatingPDF}
-          className="flex items-center gap-2 text-sm font-semibold cursor-pointer text-white bg-red-600 px-4 py-2 rounded-md hover:bg-red-700 disabled:bg-gray-400 transition-all active:scale-95 shadow-sm"
+          className="flex items-center gap-2 text-sm font-semibold cursor-pointer text-white bg-[#166534] px-4 py-2 rounded-md hover:bg-[#14532d] disabled:bg-gray-400 transition-all active:scale-95 shadow-sm"
         >
           <FileDown className={`w-4 h-4 ${generatingPDF ? 'animate-spin' : ''}`} />
           {generatingPDF ? 'Generating...' : 'Export PDF'}
@@ -512,7 +557,17 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white w-full max-w-4xl rounded-md shadow-xl overflow-hidden relative border border-gray-200 max-h-[85vh] flex flex-col">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
-              <h3 className="font-bold text-gray-800 text-base">{selectedStat} Details</h3>
+              <div className="flex items-center gap-4">
+                <h3 className="font-bold text-gray-800 text-base">{selectedStat} Details</h3>
+                <button
+                  onClick={() => generatePDF(selectedStat || undefined, true)}
+                  disabled={generatingModalPDF}
+                  className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer text-white bg-[#166534] px-3 py-1.5 rounded-md hover:bg-[#14532d] disabled:bg-gray-400 transition-all active:scale-95 shadow-sm"
+                >
+                  <FileDown className={`w-3.5 h-3.5 ${generatingModalPDF ? 'animate-spin' : ''}`} />
+                  {generatingModalPDF ? 'Generating...' : 'Export PDF'}
+                </button>
+              </div>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
