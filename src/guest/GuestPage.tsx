@@ -4,12 +4,11 @@ import { supabase } from '../lib/supabase';
 import { Search, Package, ArrowLeft, ShoppingBag, Tag, Layers, X } from 'lucide-react';
 import logoUrl from '../assets/casso.png';
 import slide1 from '../assets/casso1.jpg';
-import slide2 from '../assets/city hall.jpg';
-import slide3 from '../assets/anahaw.jpg';
-import slide4 from '../assets/carousel 4.jpg';
-import slide5 from '../assets/carousel 5.jpg';
-import slide6 from '../assets/carousel 6.jpg';
-import slide7 from '../assets/carousel 7.jpg';
+import slide2 from '../assets/Casso2.png'
+import slide3 from '../assets/carousel 4.jpg';
+import slide4 from '../assets/carousel 5.jpg';
+import slide5 from '../assets/carousel 6.jpg';
+import slide6 from '../assets/carousel 7.jpg';
 
 const CAROUSEL_ITEMS = [
   {
@@ -326,10 +325,9 @@ export default function GuestPage() {
                     ${active
                       ? isAll
                         ? 'bg-[#166534] text-white border-[#166534] shadow'
-                        : `bg-${colors?.badge.split(' ')[0].replace('bg-', '')} ${colors?.text} border-transparent shadow`
+                        : `${colors?.badge} border-transparent shadow`
                       : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
                     }`}
-                  style={active && !isAll ? { background: '', borderColor: 'transparent' } : {}}
                 >
                   {cat === 'all' ? 'All Items' : cat}
                 </button>
