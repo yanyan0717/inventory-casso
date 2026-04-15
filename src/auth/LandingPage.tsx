@@ -1,15 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import Login from './Login';
-import Register from './Register';
 import logoUrl from '../assets/casso.png';
 import bgImage from '../assets/casso1.jpg';
 
 export default function LandingPage() {
     const navigate = useNavigate();
-    const [mode, setMode] = useState<'login' | 'register'>('login');
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -19,48 +16,25 @@ export default function LandingPage() {
                 navigate('/dashboard', { replace: true });
                 return;
             }
-
-            setLoading(false);
         };
 
         checkAuth();
     }, [navigate]);
 
-    if (loading) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-white">
-                <div className="text-gray-500">Loading...</div>
-            </div>
-        );
-    }
-
     return (
-        <div className="relative h-screen w-full overflow-hidden bg-white">
-
-            {/* Sliding Background Panel (Left in Login, Right in Register) */}
-            <div 
-                className={`hidden lg:flex absolute top-0 left-0 w-1/2 h-full flex-col items-center justify-center transition-transform duration-700 ease-in-out z-20 bg-gradient-to-br from-[#166534] to-[#14532d] selection:bg-white selection:text-[#166534] ${
-                    mode === 'register' ? 'translate-x-full' : 'translate-x-0'
-                }`}
-            >
-                {/* Background Image Overlay */}
+        <div className="flex h-screen w-full bg-white">
+            {/* Left Side - Logo and Branding */}
+            <div className="relative hidden lg:flex w-1/2 h-full flex-col items-center justify-center bg-gradient-to-br from-[#166534] to-[#14532d]">
                 <img 
                     src={bgImage}
                     alt="Background"
                     className="absolute inset-0 w-full h-full object-cover opacity-20"
                 />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#166534] to-[#14532d] opacity-80"></div>
+                <div className="absolute inset-0 bg-black/15 pointer-events-none mix-blend-multiply"></div>
 
-                {/* Dark overlay to ensure red background shows through */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#166534] to-[#14532d] opacity-80 z-0"></div>
-
-                {/* Subtle background dark wash to make it feel premium */}
-                <div className="absolute inset-0 bg-black/15 pointer-events-none mix-blend-multiply z-0"></div>
-
-                {/* Centered Main Content with Big Logo */}
                 <div className="relative z-10 flex flex-col items-center text-center px-12">
-
-                    {/* BIG Logo on the left side - showing its natural colors */}
-                    <div className="w-72 h-72 rounded-full overflow-hidden mb-8 drop-shadow-2xl transition-transform hover:scale-105 duration-700 flex items-center justify-center bg-white/10">
+                    <div className="w-72 h-72 rounded-full overflow-hidden mb-8 drop-shadow-2xl flex items-center justify-center bg-white/10">
                         <img
                             src={logoUrl}
                             alt="City Assessor Logo"
@@ -77,31 +51,18 @@ export default function LandingPage() {
                 </div>
             </div>
 
-            {/* Sliding Form Panel (Right in Login, Left in Register) */}
-            <div 
-                className={`absolute top-0 right-0 w-full lg:w-1/2 h-full flex items-center justify-center bg-white px-6 md:px-12 transition-transform duration-700 ease-in-out z-10 ${
-                    mode === 'register' ? 'lg:-translate-x-full' : 'translate-x-0'
-                }`}
-            >
-                {/* Form Container overlapping dynamically */}
-                <div className="w-full max-w-[360px] relative flex justify-center items-center">
-                    <div className={`w-full transition-all duration-500 ${mode === 'login' ? 'opacity-100 relative z-10 translate-y-0' : 'opacity-0 absolute pointer-events-none -translate-y-4'}`}>
-                        <Login onModeChange={setMode} />
-                    </div>
-                    
-                    <div className={`w-full transition-all duration-500 ${mode === 'register' ? 'opacity-100 relative z-10 translate-y-0' : 'opacity-0 absolute pointer-events-none translate-y-4'}`}>
-                        <Register onModeChange={setMode} />
-                    </div>
+            {/* Right Side - Login Form */}
+            <div className="relative w-full lg:w-1/2 h-full flex items-center justify-center bg-white px-6 md:px-12">
+                <div className="w-full max-w-[360px]">
+                    <Login />
                 </div>
 
-                {/* Footer text pinned to bottom */}
-                <div className="absolute bottom-10 w-full text-center left-0">
+                <div className="absolute bottom-10 inset-x-0 text-center">
                     <p className="text-[10px] tracking-[0.2em] text-[var(--text)]/40 uppercase font-bold">
                         Created for Iligan City Assessor's Office 2026
                     </p>
                 </div>
             </div>
-
         </div>
     );
 }

@@ -3,11 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Eye, EyeOff } from 'lucide-react';
 
-interface LoginProps {
-  onModeChange?: (mode: 'login' | 'register') => void;
-}
-
-export default function Login({ onModeChange }: LoginProps) {
+export default function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -44,10 +40,6 @@ export default function Login({ onModeChange }: LoginProps) {
     } else if (data?.session) {
       navigate('/dashboard', { replace: true });
     }
-  };
-
-  const handleRegisterClick = () => {
-    onModeChange?.('register');
   };
 
   return (
@@ -134,17 +126,6 @@ export default function Login({ onModeChange }: LoginProps) {
         </button>
 
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-        <p className="text-sm text-center text-gray-500 font-[var(--sans)]">
-          Don&apos;t you have an account?{' '}
-          <button
-            type="button"
-            onClick={handleRegisterClick}
-            className="text-green-600 hover:underline font-medium cursor-pointer bg-transparent border-none p-0"
-          >
-            Click here to register
-          </button>
-        </p>
       </form>
     </div>
   );
