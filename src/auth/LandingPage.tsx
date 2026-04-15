@@ -55,6 +55,25 @@ export default function LandingPage() {
             <div className="relative w-full lg:w-1/2 h-full flex items-center justify-center bg-white px-6 md:px-12">
                 <div className="w-full max-w-[360px]">
                     <Login />
+
+                    {/* Guest Mode */}
+                    <div className="mt-5">
+                        <div className="relative flex items-center gap-3 mb-4">
+                            <div className="flex-1 h-px bg-gray-200" />
+                            <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest whitespace-nowrap">or</span>
+                            <div className="flex-1 h-px bg-gray-200" />
+                        </div>
+                        <button
+                            onClick={() => navigate('/guest')}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-[#166534] hover:border-[#166534] hover:text-white active:bg-[#14532d] active:border-[#14532d] transition-all group cursor-pointer"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            Browse as Guest
+                        </button>
+                        <p className="text-center text-[10px] text-gray-400 mt-2">View-only access · No login required</p>
+                    </div>
                 </div>
 
                 <div className="absolute bottom-10 inset-x-0 text-center">

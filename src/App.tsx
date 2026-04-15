@@ -6,6 +6,7 @@ import Materials from './main/Materials';
 import Logs from './main/Logs';
 import AddUser from './main/AddUsers';
 import Settings from './main/Settings';
+import GuestPage from './guest/GuestPage';
 import { ToastContainer } from './components/Toast';
 import './App.css';
 
@@ -15,7 +16,8 @@ function App() {
       <ToastContainer />
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        
+        <Route path="/guest" element={<GuestPage />} />
+
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/materials" element={<Materials />} />
@@ -32,3 +34,4 @@ function App() {
 }
 
 export default App;
+

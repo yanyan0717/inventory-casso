@@ -46,7 +46,8 @@ export default function Dashboard() {
     const { data } = await supabase
       .from('materials')
       .select('*, profiles:created_by(full_name)')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(5);
     setMaterials(data || []);
     setLoading(false);
   };
@@ -77,7 +78,7 @@ export default function Dashboard() {
   const categoryLabels = Object.keys(categoryData);
   const maxStock = Math.max(...Object.values(categoryData), 1);
 
-  const recentMaterials = materials.slice(0, 5);
+  const recentMaterials = materials;
 
   const stockByCategoryDate = materials
     .filter(m => m.created_at)
