@@ -6,6 +6,10 @@ import logoUrl from '../assets/casso.png';
 import slide1 from '../assets/casso1.jpg';
 import slide2 from '../assets/city hall.jpg';
 import slide3 from '../assets/anahaw.jpg';
+import slide4 from '../assets/carousel 4.jpg';
+import slide5 from '../assets/carousel 5.jpg';
+import slide6 from '../assets/carousel 6.jpg';
+import slide7 from '../assets/carousel 7.jpg';
 
 const CAROUSEL_ITEMS = [
   {
@@ -22,6 +26,26 @@ const CAROUSEL_ITEMS = [
     image: slide3,
     title: "City of Majestic Waterfalls",
     description: "Building a progressive future while preserving our rich heritage and natural wonders."
+  },
+  {
+    image: slide4,
+    title: "Community First",
+    description: "Serving the constituents of Iligan City with dedication and transparency in all our transactions."
+  },
+  {
+    image: slide5,
+    title: "Digital Transformation",
+    description: "Embracing technology to modernize our services and improve public accessibility."
+  },
+  {
+    image: slide6,
+    title: "Professional Excellence",
+    description: "Committed to highest standards of integrity, competence, and public service."
+  },
+  {
+    image: slide7,
+    title: "Collaborative Governance",
+    description: "Working together with stakeholders to build a better Iligan for all."
   }
 ];
 
