@@ -116,7 +116,7 @@ export default function Logs() {
   };
 
   return (
-    <div className="flex flex-col space-y-4 relative w-full max-w-full">
+    <div className="flex flex-col space-y-4 relative w-full max-w-full pb-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Activity Logs</h2>

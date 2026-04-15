@@ -275,7 +275,7 @@ export default function AddUser() {
 
   if (checkingAccess) {
     return (
-      <div className="flex flex-col space-y-4 relative w-full max-w-full">
+      <div className="flex flex-col space-y-4 relative w-full max-w-full pb-8">
         <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden p-8">
           <TableSkeleton rows={5} cols={4} />
         </div>
@@ -284,7 +284,7 @@ export default function AddUser() {
   }
 
   return (
-    <div className="flex flex-col space-y-4 relative w-full max-w-full">
+    <div className="flex flex-col space-y-4 relative w-full max-w-full pb-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Add User</h2>

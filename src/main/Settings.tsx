@@ -69,7 +69,7 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="flex flex-col space-y-4 relative w-full max-w-2xl mx-auto">
+      <div className="flex flex-col space-y-4 relative w-full max-w-2xl mx-auto pb-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Settings</h2>
           <p className="text-sm text-gray-600 mt-1 font-medium">Manage your system preferences and account settings.</p>
@@ -80,7 +80,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="flex flex-col space-y-4 relative w-full max-w-2xl mx-auto">
+    <div className="flex flex-col space-y-4 relative w-full max-w-2xl mx-auto pb-8">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Settings</h2>
         <p className="text-sm text-gray-600 mt-1 font-medium">Manage your system preferences and account settings.</p>

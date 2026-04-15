@@ -18,8 +18,21 @@ interface Material {
   };
 }
 
+interface LogEntry {
+  id: string;
+  material_name: string;
+  action_type: string;
+  quantity: number;
+  reason: string;
+  created_at: string;
+  profiles?: {
+    full_name: string | null;
+  };
+}
+
 export default function Dashboard() {
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStat, setSelectedStat] = useState<string | null>(null);
@@ -35,8 +48,17 @@ export default function Dashboard() {
     setLoading(false);
   };
 
+  const fetchLogs = async () => {
+    const { data } = await supabase
+      .from('material_logs')
+      .select('*, profiles:user_id(full_name)')
+      .order('created_at', { ascending: false });
+    setLogs(data || []);
+  };
+
   useEffect(() => {
     fetchMaterials();
+    fetchLogs();
   }, []);
 
   const totalMaterials = materials.length;
@@ -277,7 +299,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex flex-col space-y-4 relative w-full max-w-full">
+    <div className="flex flex-col space-y-4 relative w-full max-w-full pb-8">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 font-[var(--heading)] tracking-tight">Dashboard Overview</h2>
@@ -545,6 +567,65 @@ export default function Dashboard() {
                       </tr>
                     );
                   })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Action Logs Table */}
+      <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="text-base font-bold text-gray-800 font-[var(--heading)]">Action Logs</h3>
+        </div>
+        <div className="p-4">
+          <div className="overflow-x-auto" style={{ minHeight: '150px' }}>
+            {loading ? (
+              <TableSkeleton rows={5} />
+            ) : logs.length === 0 ? (
+              <div className="text-center text-gray-400 py-8">No action logs</div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#f8fafc] border-b border-gray-200">
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Date & Time</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Material Name</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Action</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider text-right">Quantity</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Reason</th>
+                    <th className="px-6 py-3 text-[11px] font-bold text-[#166534] uppercase tracking-wider">Performed By</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm divide-y divide-gray-50">
+                  {logs.slice(0, 5).map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+                      <td className="px-6 py-1.5 text-gray-500 text-xs">
+                        {new Date(log.created_at).toLocaleString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric',
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </td>
+                      <td className="px-6 py-1.5 font-semibold text-slate-800">{log.material_name}</td>
+                      <td className="px-6 py-1.5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tight italic border ${log.action_type?.toLowerCase() === 'add' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                          {log.action_type}
+                        </span>
+                      </td>
+                      <td className={`px-6 py-1.5 text-right font-bold ${log.action_type?.toLowerCase() === 'add' ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {log.action_type?.toLowerCase() === 'add' ? '+' : '-'}{log.quantity}
+                      </td>
+                      <td className="px-6 py-1.5 text-gray-600 text-xs italic">{log.reason || 'No reason provided'}</td>
+                      <td className="px-6 py-1.5 text-slate-800 text-sm">
+                        {Array.isArray(log.profiles) 
+                          ? (log.profiles[0]?.full_name || '-') 
+                          : (log.profiles?.full_name || '-')}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             )}
