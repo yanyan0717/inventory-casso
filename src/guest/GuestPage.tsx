@@ -3,7 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Search, Package, ArrowLeft, ShoppingBag, Tag, Layers, X } from 'lucide-react';
 import logoUrl from '../assets/casso.png';
-import heroImgUrl from '../assets/casso1.jpg';
+import slide1 from '../assets/casso1.jpg';
+import slide2 from '../assets/city hall.jpg';
+import slide3 from '../assets/anahaw.jpg';
+
+const CAROUSEL_ITEMS = [
+  {
+    image: slide1,
+    title: "Office Supplies & Materials",
+    description: "Browse the current inventory of Iligan City Assessor's Office. Stock levels are updated in real-time."
+  },
+  {
+    image: slide2,
+    title: "Streamlined Operations",
+    description: "Efficiently managing resources to serve the people of Iligan City with integrity and excellence."
+  },
+  {
+    image: slide3,
+    title: "City of Majestic Waterfalls",
+    description: "Building a progressive future while preserving our rich heritage and natural wonders."
+  }
+];
 
 interface Material {
   id: string;
@@ -36,6 +56,14 @@ export default function GuestPage() {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedItem, setSelectedItem] = useState<Material | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % CAROUSEL_ITEMS.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -195,30 +223,65 @@ export default function GuestPage() {
       </header>
 
       {/* ─── HERO BANNER ─────────────────────────── */}
-      <section className="relative bg-gradient-to-br from-[#166534] to-[#14532d] text-white py-10 px-4 overflow-hidden">
-        <img src={heroImgUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
-        <div className="max-w-7xl mx-auto relative">
-          <div className="flex items-center gap-3 mb-2">
-            <ShoppingBag className="w-6 h-6 text-white/70" />
-            <span className="text-white/70 text-sm font-semibold uppercase tracking-widest">Public Inventory Catalog</span>
+      <section className="relative py-12 px-4 overflow-hidden h-[340px] flex items-center">
+        {/* Carousel Backgrounds */}
+        {CAROUSEL_ITEMS.map((item, index) => (
+          <div 
+            key={index}
+            className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#14532d]/95 via-[#166534]/75 to-transparent z-10 mix-blend-multiply"></div>
+            <div className="absolute inset-0 bg-black/30 z-10"></div>
+            <img src={item.image} alt="" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Office Supplies & Materials</h1>
-          <p className="text-white/60 text-sm max-w-lg">
-            Browse the current inventory of Iligan City Assessor's Office. Stock levels are updated in real-time.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <div className="bg-white/10 rounded-xl px-4 py-2 text-center">
-              <p className="text-xl font-black">{materials.length}</p>
-              <p className="text-[10px] text-white/60 uppercase tracking-widest font-semibold">Items</p>
+        ))}
+
+        <div className="max-w-7xl mx-auto w-full relative z-20">
+          <div className="flex items-center gap-3 mb-3">
+            <ShoppingBag className="w-6 h-6 text-emerald-400 drop-shadow" />
+            <span className="text-emerald-400 text-sm font-bold uppercase tracking-widest drop-shadow">Public Inventory Catalog</span>
+          </div>
+          
+          <div className="relative h-[80px] w-full">
+            {CAROUSEL_ITEMS.map((item, index) => (
+              <div 
+                key={index}
+                className={`absolute inset-0 transition-all duration-700 ease-in-out ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+              >
+                <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2 text-white drop-shadow-lg">
+                  {item.title}
+                </h1>
+                <p className="text-white/90 text-sm max-w-lg drop-shadow-md font-medium">
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-4">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-xl px-5 py-2.5 text-center transition-transform hover:scale-105">
+              <p className="text-2xl font-black text-white drop-shadow-sm">{materials.length}</p>
+              <p className="text-[10px] text-white/80 uppercase tracking-widest font-bold">Items</p>
             </div>
-            <div className="bg-white/10 rounded-xl px-4 py-2 text-center">
-              <p className="text-xl font-black">{materials.reduce((s, m) => s + m.stocks, 0).toLocaleString()}</p>
-              <p className="text-[10px] text-white/60 uppercase tracking-widest font-semibold">Total Stock</p>
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-xl px-5 py-2.5 text-center transition-transform hover:scale-105">
+              <p className="text-2xl font-black text-white drop-shadow-sm">{materials.reduce((s, m) => s + m.stocks, 0).toLocaleString()}</p>
+              <p className="text-[10px] text-white/80 uppercase tracking-widest font-bold">Total Stock</p>
             </div>
-            <div className="bg-white/10 rounded-xl px-4 py-2 text-center">
-              <p className="text-xl font-black">{categories.length - 1}</p>
-              <p className="text-[10px] text-white/60 uppercase tracking-widest font-semibold">Categories</p>
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-xl px-5 py-2.5 text-center transition-transform hover:scale-105">
+              <p className="text-2xl font-black text-white drop-shadow-sm">{categories.length - 1}</p>
+              <p className="text-[10px] text-white/80 uppercase tracking-widest font-bold">Categories</p>
             </div>
+          </div>
+
+          {/* Carousel Indicators */}
+          <div className="absolute -bottom-8 left-0 flex gap-2 w-full max-w-sm">
+            {CAROUSEL_ITEMS.map((_, index) => (
+              <div 
+                key={index} 
+                onClick={() => setCurrentSlide(index)}
+                className={`h-1.5 rounded-full cursor-pointer transition-all duration-500 ease-in-out ${index === currentSlide ? 'w-10 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'w-4 bg-white/40 hover:bg-white/70'}`} 
+              />
+            ))}
           </div>
         </div>
       </section>
