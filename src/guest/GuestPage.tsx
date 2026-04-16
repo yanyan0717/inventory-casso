@@ -4,23 +4,16 @@ import { supabase } from '../lib/supabase';
 import { Search, Package, ArrowLeft, ShoppingBag, Tag, Layers, X } from 'lucide-react';
 import logoUrl from '../assets/casso.png';
 import slide1 from '../assets/casso1.jpg';
-import slide2 from '../assets/city hall.jpg';
 import slide3 from '../assets/carousel 4.jpg';
 import slide4 from '../assets/carousel 5.jpg';
 import slide5 from '../assets/carousel 6.jpg';
 import slide6 from '../assets/carousel 7.jpg';
-import slide7 from '../assets/anahaw.jpg';
 
 const CAROUSEL_ITEMS = [
   {
     image: slide1,
     title: "Office Supplies & Materials",
     description: "Browse the current inventory of Iligan City Assessor's Office. Stock levels are updated in real-time."
-  },
-  {
-    image: slide2,
-    title: "Streamlined Operations",
-    description: "Efficiently managing resources to serve the people of Iligan City with integrity and excellence."
   },
   {
     image: slide3,
@@ -41,11 +34,6 @@ const CAROUSEL_ITEMS = [
     image: slide6,
     title: "Professional Excellence",
     description: "Committed to highest standards of integrity, competence, and public service."
-  },
-  {
-    image: slide7,
-    title: "Collaborative Governance",
-    description: "Working together with stakeholders to build a better Iligan for all."
   }
 ];
 
