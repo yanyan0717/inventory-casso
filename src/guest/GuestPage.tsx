@@ -9,7 +9,6 @@ import slide3 from '../assets/carousel 4.jpg';
 import slide4 from '../assets/carousel 5.jpg';
 import slide5 from '../assets/carousel 6.jpg';
 import slide6 from '../assets/carousel 7.jpg';
-import slide7 from '../assets/carousel 7.jpg'; // Added missing slide7 import
 
 const CAROUSEL_ITEMS = [
   {
@@ -42,11 +41,7 @@ const CAROUSEL_ITEMS = [
     title: "Professional Excellence",
     description: "Committed to highest standards of integrity, competence, and public service."
   },
-  {
-    image: slide7,
-    title: "Collaborative Governance",
-    description: "Working together with stakeholders to build a better Iligan for all."
-  }
+  
 ];
 
 interface Material {
