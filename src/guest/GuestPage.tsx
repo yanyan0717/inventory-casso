@@ -4,10 +4,10 @@ import { supabase } from '../lib/supabase';
 import { Search, Package, ArrowLeft, ShoppingBag, Tag, Layers, X } from 'lucide-react';
 import logoUrl from '../assets/casso.png';
 import slide1 from '../assets/casso1.jpg';
-import slide3 from '../assets/carousel 4.jpg';
-import slide4 from '../assets/carousel 5.jpg';
-import slide5 from '../assets/carousel 6.jpg';
-import slide6 from '../assets/carousel 7.jpg';
+import slide2 from '../assets/carousel 4.jpg';
+import slide3 from '../assets/carousel 5.jpg';
+import slide4 from '../assets/carousel 6.jpg';
+import slide5 from '../assets/carousel 7.jpg';
 
 const CAROUSEL_ITEMS = [
   {
@@ -16,22 +16,22 @@ const CAROUSEL_ITEMS = [
     description: "Browse the current inventory of Iligan City Assessor's Office. Stock levels are updated in real-time."
   },
   {
-    image: slide3,
+    image: slide2,
     title: "City of Majestic Waterfalls",
     description: "Building a progressive future while preserving our rich heritage and natural wonders."
   },
   {
-    image: slide4,
+    image: slide3,
     title: "Community First",
     description: "Serving the constituents of Iligan City with dedication and transparency in all our transactions."
   },
   {
-    image: slide5,
+    image: slide4,
     title: "Digital Transformation",
     description: "Embracing technology to modernize our services and improve public accessibility."
   },
   {
-    image: slide6,
+    image: slide5,
     title: "Professional Excellence",
     description: "Committed to highest standards of integrity, competence, and public service."
   }
