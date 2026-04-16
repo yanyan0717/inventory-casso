@@ -46,8 +46,7 @@ export default function Dashboard() {
     const { data } = await supabase
       .from('materials')
       .select('*, profiles:created_by(full_name)')
-      .order('created_at', { ascending: false })
-      .limit(5);
+      .order('created_at', { ascending: false });
     setMaterials(data || []);
     setLoading(false);
   };
@@ -78,7 +77,7 @@ export default function Dashboard() {
   const categoryLabels = Object.keys(categoryData);
   const maxStock = Math.max(...Object.values(categoryData), 1);
 
-  const recentMaterials = materials;
+  const recentMaterials = materials.slice(0, 5);
 
   const stockByCategoryDate = materials
     .filter(m => m.created_at)
@@ -265,7 +264,7 @@ export default function Dashboard() {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(60);
     
-    const displayMaterials = statTitle ? filteredMaterials : recentMaterials.slice(0, 8);
+    const displayMaterials = statTitle ? filteredMaterials : materials.slice(0, 8);
     displayMaterials.forEach((mat) => {
       const status = getStatus(mat.stocks);
       doc.text((mat.material_id || 'N/A').substring(0, 15), margin, yPos);

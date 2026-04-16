@@ -4,11 +4,12 @@ import { supabase } from '../lib/supabase';
 import { Search, Package, ArrowLeft, ShoppingBag, Tag, Layers, X } from 'lucide-react';
 import logoUrl from '../assets/casso.png';
 import slide1 from '../assets/casso1.jpg';
-import slide2 from '../assets/Casso2.png'
+import slide2 from '../assets/city hall.jpg';
 import slide3 from '../assets/carousel 4.jpg';
 import slide4 from '../assets/carousel 5.jpg';
 import slide5 from '../assets/carousel 6.jpg';
 import slide6 from '../assets/carousel 7.jpg';
+import slide7 from '../assets/anahaw.jpg';
 
 const CAROUSEL_ITEMS = [
   {
