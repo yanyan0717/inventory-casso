@@ -19,9 +19,9 @@ export default function Logs() {
   const fetchLogs = async () => {
     setLoading(true);
 
-    // Auto-delete logs older than 10 days
+    // Auto-delete logs older than 30 days
     const tenDaysAgo = new Date();
-    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 30);
 
     // Attempt automatic cleanup
     await supabase.from('material_logs').delete().lt('created_at', tenDaysAgo.toISOString());
@@ -94,7 +94,7 @@ export default function Logs() {
 
     doc.setFontSize(11);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Activity Logs Report - Generated on ${new Date().toLocaleDateString()}`, 14, 10);
+    doc.text(`Activity Logs Report - Generated on ${new Date().toLocaleDateString()}`, 14, 30);
 
     const tableData = filteredLogs.map(log => [
       new Date(log.created_at).toLocaleString('en-US', {
@@ -176,8 +176,8 @@ export default function Logs() {
       <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-md flex items-start gap-3 mt-4 text-sm">
         <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
-          <span className="font-semibold block mb-1">Log Retention Policy (10-Day Allowance)</span>
-          Activity logs are displayed without limits here, but to save space, the system automatically deletes any logs older than 10 days.
+          <span className="font-semibold block mb-1">Log Retention Policy (30-Day Allowance)</span>
+          Activity logs are displayed without limits here, but to save space, the system automatically deletes any logs older than 30 days.
           Please use the Export feature frequently if you need to keep long-term records.
         </div>
       </div>
