@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
-import { LayoutDashboard, Package, UserPlus, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Package, UserPlus, Settings, LogOut, ChevronDown, ClipboardList, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import logoUrl from '../assets/casso.png';
 
@@ -94,7 +94,13 @@ export default function Sidebar() {
         { name: 'Logs', path: '/materials/logs' },
       ]
     },
-    ...(roleLoaded && role === 'admin' ? [{ name: 'Add User', path: '/add-user', icon: UserPlus }] : []),
+    ...(roleLoaded && role === 'admin' ? [
+      { name: 'Orders List', path: '/orders', icon: ClipboardList },
+      { name: 'Add User', path: '/add-user', icon: UserPlus }
+    ] : []),
+    ...(roleLoaded && role === 'user' ? [
+      { name: 'Request Form', path: '/request', icon: Send }
+    ] : []),
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 

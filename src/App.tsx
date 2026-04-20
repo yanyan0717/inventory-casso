@@ -6,6 +6,8 @@ import Materials from './main/Materials';
 import Logs from './main/Logs';
 import AddUser from './main/AddUsers';
 import Settings from './main/Settings';
+import RequestForm from './main/RequestForm';
+import OrdersList from './main/OrdersList';
 import GuestPage from './guest/GuestPage';
 import { ToastContainer } from './components/Toast';
 import './App.css';
@@ -24,6 +26,8 @@ function App() {
           <Route path="/materials/logs" element={<Logs />} />
           <Route path="/add-user" element={<AddUser />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/request" element={<RequestForm />} />
+          <Route path="/orders" element={<OrdersList />} />
         </Route>
         
         {/* Fallback to home */}
